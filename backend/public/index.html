@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <!--<script src="../node_modules/socket.io-client/socket.io.js"></script>-->
+
+</head>
+<body>
+<div id="header">
+    <div class="top-wrapper container">
+        <div class="row">
+            <div class="logo col-lg-4 col-md-4 col-sm-4"></div>
+            <div class="links col-lg-8 col-md-8 col-sm-8">
+                <a id="signIn" class="btn btn-default" href="/login" role="button">Sign In</a>
+                <a id="signUp" class="btn btn-warning" href="/register" role="button">Sign Up</a>
+            </div>
+        </div>
+        <div class="row">
+            <h1 class="text-center">Logs-viewer</h1>
+            <div class="wrap-dashboard col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div id="dashboard">
+                    <ul id="event_list" class="list-unstyled text-left">
+                    </ul>
+                </div>
+            </div>
+            <div class="wrap-dashboard-nav col-lg-12 col-md-12 col-sm-12 col-xs-12">
+                <div class="form-group">
+                    <input type="text" id="filter" class="form-control" placeholder="Search">
+                </div>
+            </div>
+        </div>
+
+
+        <script src="libs/jquery/dist/jquery.min.js"></script>
+        <script src="libs/bootstrap/dist/js/bootstrap.min.js"></script>
+        <script src="js/common.js"></script>
+        <script>
+            var user = {};
+            var socket = io.connect('');
+
+            if (document.cookie){
+                socket.emit('cookie-session', document.cookie);
+            }
+
+            socket.on('cookie-session', function (obj) {
+                console.log(obj);
+                user = obj;
+                user.reverseDirection = true;
+                user.filters= "";
+                socket.emit('get logs old', user);
+            });
+
+            socket.on('get logs', function (data) {
+                console.log(data.data.toString());
+                data.logs.forEach(function (li) {
+                    $("<li>" + li + "</li>").appendTo('ul');
+                });
+//        $("<li>"+JSON.stringify(data.logs)+"</li>").appendTo('ul');
+            });
+
+            //    $('#dashboard').scroll(function(){
+            //        alert('Элемент foo был прокручен... скроллирован... ну как там это называется то?!');
+            //    });
+
+            $('#dashboard').scroll(function () {
+                var $this = $(this);
+                var scrollTop = $this.scrollTop();
+                var height = $this.height();
+                var scrollHeight = $this[0].scrollHeight;
+
+                console.log($this.scrollTop());
+
+                if (scrollTop == 1) {
+                    console.log('top found');
+                    user.reverseDirection = true;
+//            socket.emit('get logs old', user);
+                }
+                if (scrollTop + height == scrollHeight) {
+                    console.log('bottom found');
+                    user.reverseDirection = false;
+            socket.emit('get logs new', user);
+                }
+            });
+
+//            $('#filter').keyup(function (event) {
+//                var keyCode = event.keyCode;
+//                if (keyCode === 13) {
+//                    var filter = $('#filter').val();
+//                    console.log(filter);
+//                    user.filter = filter;
+//                    socket.emit('get logs', user);
+//                }
+//            });
+
+            //    socket.on('news', function (data){
+            //        console.log(data);
+            //        socket.emit('my other event', {my: "data"})
+            //    });
+
+        </script>
+</body>
+</html>

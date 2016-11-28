@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link href="./libs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./css/main.css">
+    <script src="./socket.io/socket.io.js"></script>
+    <!--<script src="../node_modules/socket.io-client/socket.io.js"></script>-->
+
+</head>
+<body>
+<div id="header">
+    <div class="top-wrapper container">
+        <div class="row">
+            <div class="logo col-lg-4 col-md-4 col-sm-4"></div>
+            <div class="links col-lg-8 col-md-8 col-sm-8">
+
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="container">
+    <div class="row">
+        <h1 class="text-center">Logs-viewer</h1>
+        <div class="col-lg-4 col-md-4 col-sm-4 col-lg-offset-4">
+            <div class="signUp">
+                <p>Create your personal account</p>
+                <form class="form-center">
+                    <div class="form-group">
+                        <label class="sr-only" for="username">This will be your username</label>
+                        <input type="username" class="form-control" id="username" placeholder="Username">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="email">Email address</label>
+                        <input type="email" class="form-control" id="email" placeholder="Email">
+                    </div>
+                    <div class="form-group">
+                        <label class="sr-only" for="password">Password</label>
+                        <input type="password" class="form-control" id="password" placeholder="Password">
+                    </div>
+                    <button id="signUp" type="submit" class="btn btn-default">Create an account</button>
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
+
+
+<script src="./libs/jquery/dist/jquery.min.js"></script>
+<script src="./libs/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="./js/common.js"></script>
+<script>
+    var user = {
+        name: "Alex",
+        host: 'localhost',
+        port: '30000',
+        streamsId: ['log', 'sys_log', 'nginx'],
+        filter: '',
+        reverseDirection: true
+    };
+    var socket= io.connect('');
+    //    socket.emit('get logs', user);
+
+    socket.on('sign up', function (data) {
+//        user.name = data.name;
+//        user.host = data.host;
+//        user.port = data.port;
+//        user.streamsId = user.streamsId;
+//        console.log("Login sign in " + JSON.stringify(data));
+//        var date = new Date(new Date().getTime() + 60 * 1000);
+//        var value = 10;
+//        document.cookie = "name="+value+"; path=/; expires=" + date.toUTCString();
+
+    });
+
+
+    $('#signUp').click(function (event) {
+        event.preventDefault();
+        var username = $('#username').val();
+        var email = $('#email').val();
+        var password = $('#password').val();
+        socket.emit('sign up', {username: username, email: email, password: password});
+    });
+
+</script>
+</body>
+</html>
