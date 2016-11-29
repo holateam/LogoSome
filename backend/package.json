@@ -10,6 +10,11 @@
   "author": "Alex Belokon",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.14.0"
+    "bcrypt": "^0.8.7",
+    "body-parser": "^1.15.2",
+    "cookie-parser": "^1.4.3",
+    "express": "^4.14.0",
+    "mongoose": "^4.7.0",
+    "winston": "^2.3.0"
   }
 }
