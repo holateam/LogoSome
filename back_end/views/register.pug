@@ -1,0 +1,20 @@
+include layout
+
+block content
+    .container
+        .row
+            h1.text-center Logs-viewer
+            .col-lg-4.col-md-4.col-sm-4.col-lg-offset-4
+                .signUp
+                    p Create your personal account
+                    form.form-center
+                        .form-group
+                            label.sr-only(for='username') This will be your username
+                            input#username.form-control(type='username', placeholder='Username')
+                        .form-group
+                            label.sr-only(for='email') Email address
+                            input#email.form-control(type='email', placeholder='Email')
+                        .form-group
+                            label.sr-only(for='password') Password
+                            input#password.form-control(type='password', placeholder='Password')
+                        button#signUp.btn.btn-default(type='submit') Create an account

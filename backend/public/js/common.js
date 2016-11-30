@@ -13,7 +13,7 @@ var view = {
 var model = {
     signIn: function (data){
         console.log("Login sign in " + JSON.stringify(data));
-        if(data.err){
+        if(data.success){
             user.name = data.name;
             user.host = data.host;
             user.port = data.port;
@@ -31,19 +31,20 @@ var model = {
 /* --------------------------- begin controller ------------------------------*/
 var controller = {
     signIn: function(event) {
-        event.preventDefault();
+        // event.preventDefault();
         var email = $('#email').val();
         var password = $('#password').val();
+        console.log(email+ " " + password);
 
         $.ajax({
             type: 'POST',
             url: '/api/v1/signIn',
             contentType: 'application/json',
             dataType: 'json',
-            data: {
+            data: JSON.stringify({
                 "email": email,
                 "password": password
-            },
+            }),
             success: function(res) {
                 model.signIn(res);
             },
@@ -78,7 +79,9 @@ var controller = {
         },
         event: function() { // тут навешиваем слушателей на события
             $(document).ready(function() {
-                $('#signIn').click(controller.signIn(event));
+                $('#signIn').click(function (event){
+                    controller.signIn(event);
+                });
             });
         }
     };
