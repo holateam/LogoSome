@@ -1,0 +1,22 @@
+extends layout
+
+block content
+    .container
+        .row
+            h1.text-center Logs-viewer
+            .col-lg-4.col-md-4.col-sm-4.col-lg-offset-4
+                .signIn
+                    h4.text-center Sign in to Logs-viewer
+                    p.msgErr.text-center Incorrect username or password.
+                    form.form-center
+                        .form-group
+                            label.sr-only(for='email') Email address
+                            input#email.form-control(type='email', placeholder='Email')
+                        .form-group
+                            label.sr-only(for='password') Password
+                            input#password.form-control(type='password', placeholder='Password')
+                        .checkbox
+                            label
+                                input(type='checkbox')
+                                |  Remember me
+                        button#signIn.btn.btn-default(type='button') Sign in

@@ -1,0 +1,11 @@
+{
+  "server": {
+    "port": 30000
+  },
+  "mongoose": {
+    "urli": "mongodb://alex:root@ds053186.mlab.com:53186/hola"
+  },
+  "session": {
+    "timeMinutes": 5
+  }
+}
