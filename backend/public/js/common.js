@@ -3,19 +3,18 @@
  */
 /* ----------------------------- begin view ----------------------------------*/
 var view = {
-    signIn: function (data) {
+    msgErr: function (data) {
         $('.msgErr').text(data.msg.msg);
         $('.msgErr').css('visibility', 'visible');
     }
+
 };
 /* ------------------------------- end view ----------------------------------*/
 
 /* ------------------------------ begin model --------------------------------*/
 var model = {
     signIn: function (data) {
-        console.log("Res:" + JSON.stringify(data));
         if (data.success) {
-            console.log(data.data.token);
             // user.name = data.data.name;
             // user.host = data.data.host;
             // user.port = data.data.port;
@@ -24,8 +23,17 @@ var model = {
             document.cookie = "token=" + data.data.token + "; path=/; expires=" + date.toUTCString();
             location.href = '/';
         } else {
-            view.signIn(data);
+            view.msgErr(data);
         }
+    },
+    signUp: function (data) {
+        if (data.success) {
+            alert('Thank you successfully registered');
+            location.href = '/';
+        } else {
+            view.msgErr(data);
+        }
+
     },
     cookieSession: function (data) {
         console.log("You have cookie: " + JSON.stringify(data));
@@ -41,14 +49,13 @@ var model = {
 /* --------------------------- begin controller ------------------------------*/
 var controller = {
     signIn: function (event) {
-        // event.preventDefault();
+        event.preventDefault();
         var email = $('#email').val();
         var password = $('#password').val();
-        console.log('Post : ' + email + " " + password);
 
         $.ajax({
             type: 'POST',
-            url: '/api/v1/signIn',
+            url: '/api/v1/login',
             contentType: 'application/json',
             dataType: 'json',
             data: JSON.stringify({
@@ -61,6 +68,30 @@ var controller = {
             error: function () {
             }
         });
+    },
+    signUp: function (event) {
+        event.preventDefault();
+        var username = $('#username').val();
+        var email = $('#email').val();
+        var password = $('#password').val();
+
+        $.ajax({
+            type: 'POST',
+            url: '/api/v1/registration',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: JSON.stringify({
+                "username": username,
+                "email": email,
+                "password": password
+            }),
+            success: function (res) {
+                model.signUp(res);
+            },
+            error: function () {
+            }
+        });
+
     },
     cookieSession: function (cookie) {
         $.ajax({
@@ -101,16 +132,18 @@ var user = {
             this.event();
         },
         main: function () {
-            // тут функции при загрузке главной страницы
+            if (document.cookie) {
+                controller.cookieSession(document.cookie);
+            }
         },
         event: function () { // тут навешиваем слушателей на события
             $(document).ready(function () {
-                if (document.cookie) {
-                    controller.cookieSession(document.cookie);
-                }
 
                 $('#signIn').click(function (event) {
                     controller.signIn(event);
+                });
+                $('#signUp').click(function (event) {
+                    controller.signUp(event);
                 });
             });
         }

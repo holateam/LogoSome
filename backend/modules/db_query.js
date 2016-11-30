@@ -38,7 +38,6 @@ module.exports.cookieSession = (cookie) => {
         }).exec((err, user) => {
             if (err) {
                 reject(err);
-                console.log(`Error sign up:  ${err}`);
             }
             if (user && token) {
                 if (user.sessiontoken == token) {
@@ -57,15 +56,14 @@ module.exports.cookieSession = (cookie) => {
     return promise
 };
 
-module.exports.signUp = (obj) => {
+module.exports.registration = (obj) => {
     let promise = new Promise((resolve, reject) => {
-        Users.findOne({'email': obj.email}, (err, user) => {
+        Users.findOne({'email': obj.email}).exec((err, user) => {
             if (err) {
                 console.log(`Error sign up:  ${err}`);
             }
             if (user) {
-                console.log(`User alerady existis`);
-                reject({'msg': 'User alerady existis'});
+                reject({'err': true, 'msg': 'Users with this email already exists'});
             } else {
                 let newUser = new Users();
                 newUser.email = obj.email;
@@ -77,22 +75,22 @@ module.exports.signUp = (obj) => {
                     newUser.port = line[line.length - 1].port + 1;
                     newUser.save((err) => {
                         if (err) console.log(`Error save user ${err}`);
-                        resolve();
+                        resolve({'err': false, 'msg': 'The new user is registered'});
                     })
                 });
             }
-        })
+        });
     });
     return promise;
 };
 
-module.exports.signIn = (obj) => {
+module.exports.login = (obj) => {
     let promise = new Promise((resolve, reject) => {
         Users.findOne({email: obj.email}).exec((err, user) => {
             if (err) {
                 reject(err);
             }
-            if(user == null) {
+            if (user == null) {
                 reject({err: true, msg: 'User is not found'});
             } else {
                 if ((bCrypt.compareSync(obj.password, user.password))) {
@@ -132,7 +130,6 @@ module.exports.getNameStreams = (userHost, userPort) => {
 };
 
 module.exports.saveAddressOfFile = (userHost, userPort, nameStream, addressFile) => {
-    console.log("--->  save address file in db: " + addressFile);
     Users.findOne({host: userHost, port: userPort}, (err, doc) => {
         doc.streams.forEach(stream => {
             if (stream.name == nameStream) {

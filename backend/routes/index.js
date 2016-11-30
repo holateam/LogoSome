@@ -27,9 +27,17 @@ let standardRes = (err, resp) => {
     };
 };
 
-router.route('/api/v1/signIn').post((req, res, next) => {
-    db_query.signIn(req.body).then((result) => {
+router.route('/api/v1/login').post((req, res, next) => {
+    db_query.login(req.body).then((result) => {
         res.json(standardRes(result.err, {token: result.token}));
+    }).catch((result) => {
+        res.json(standardRes(result.err, {msg: result.msg}))
+    });
+});
+
+router.route('/api/v1/registration').post((req, res, next) => {
+    db_query.registration(req.body).then((result) => {
+        res.json(standardRes(result.err, {msg: result.msg}));
     }).catch((result) => {
         res.json(standardRes(result.err, {msg: result.msg}))
     });
@@ -37,7 +45,7 @@ router.route('/api/v1/signIn').post((req, res, next) => {
 
 router.route('/api/v1/cookie-session').post((req, res, next) => {
     db_query.cookieSession(req.body.cookie).then((result) => {
-        res.json(standardRes(result.err, result.data));
+        res.json(standardRes(result.err, {data: result.data}));
     }).catch((result) => {
         res.json(standardRes(result.err, {data: result.msg}));
     });
