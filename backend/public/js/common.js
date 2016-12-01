@@ -54,18 +54,28 @@ var controller = {
         var password = $('#password').val();
 
         $.ajax({
-            type: 'POST',
             url: '/api/v1/login',
+            method: 'POST',
             contentType: 'application/json',
             dataType: 'json',
             data: JSON.stringify({
                 "email": email,
                 "password": password
             }),
+            // statusCode: {
+            //     403: function(jqXHR) {
+            //         var error = JSON.parse(jqXHR.responseText);
+            //         console.log('error: ' + JSON.stringify(error));
+            //         alert('status: 403' + error);
+            //     }
+            // },
             success: function (res) {
+                console.log('success: ' + JSON.stringify(res));
                 model.signIn(res);
             },
-            error: function () {
+            error: function (jqXHR) {
+                var error = JSON.parse(jqXHR.responseText);
+                console.log(JSON.stringify(error));
             }
         });
     },
@@ -86,9 +96,12 @@ var controller = {
                 "password": password
             }),
             success: function (res) {
+                console.log('success: ' + JSON.stringify(res));
                 model.signUp(res);
             },
-            error: function () {
+            error: function (jqXHR) {
+                var error = JSON.parse(jqXHR.responseText);
+                console.log(JSON.stringify(error));
             }
         });
 
@@ -105,7 +118,9 @@ var controller = {
             success: function (res) {
                 model.cookieSession(res);
             },
-            error: function () {
+            error: function (jqXHR) {
+                var error = JSON.parse(jqXHR.responseText);
+                console.log(JSON.stringify(error));
             }
         });
     }

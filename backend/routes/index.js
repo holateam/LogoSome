@@ -8,7 +8,6 @@ router.get('/', (req, res, next) => {
     res.render('index', {title: 'Express'});
 });
 
-
 router.get('/login', (req, res, next) => {
     res.render('login');
 });
@@ -29,25 +28,25 @@ let standardRes = (err, resp) => {
 
 router.route('/api/v1/login').post((req, res, next) => {
     db_query.login(req.body).then((result) => {
-        res.json(standardRes(result.err, {token: result.token}));
+        res.json(200,standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(standardRes(result.err, {msg: result.msg}))
+        res.json(500,standardRes(result.err, result.data));
     });
 });
 
 router.route('/api/v1/registration').post((req, res, next) => {
     db_query.registration(req.body).then((result) => {
-        res.json(standardRes(result.err, {msg: result.msg}));
+        res.json(200,standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(standardRes(result.err, {msg: result.msg}))
+        res.json(500,standardRes(result.err, result.data));
     });
 });
 
 router.route('/api/v1/cookie-session').post((req, res, next) => {
     db_query.cookieSession(req.body.cookie).then((result) => {
-        res.json(standardRes(result.err, {data: result.data}));
+        res.json(200, standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(standardRes(result.err, {data: result.msg}));
+        res.json(500, standardRes(result.err, result.data));
     });
 });
 

@@ -3,6 +3,7 @@ body {
     color: white;
 }
 .msgErr{
+    text-align: center;
     visibility: hidden;
     color: #ff5e26;
 }

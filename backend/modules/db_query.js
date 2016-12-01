@@ -37,7 +37,7 @@ module.exports.cookieSession = (cookie) => {
             "sessiondate": 0
         }).exec((err, user) => {
             if (err) {
-                reject(err);
+                return next(err);
             }
             if (user && token) {
                 if (user.sessiontoken == token) {
@@ -49,7 +49,7 @@ module.exports.cookieSession = (cookie) => {
                     });
                 }
             } else {
-                reject({err: true, data: {'msg': 'Invalid token'}});
+                resolve({err: true, data: {'msg': 'Invalid token'}});
             }
         })
     });
@@ -60,10 +60,10 @@ module.exports.registration = (obj) => {
     let promise = new Promise((resolve, reject) => {
         Users.findOne({'email': obj.email}).exec((err, user) => {
             if (err) {
-                console.log(`Error sign up:  ${err}`);
+                return next(err);
             }
             if (user) {
-                reject({'err': true, 'msg': 'Users with this email already exists'});
+                resolve({'err': true, data: {'msg': 'Users with this email already exists'}});
             } else {
                 let newUser = new Users();
                 newUser.email = obj.email;
@@ -74,9 +74,9 @@ module.exports.registration = (obj) => {
                 Users.find({}).then((line) => {
                     newUser.port = line[line.length - 1].port + 1;
                     newUser.save((err) => {
-                        if (err) console.log(`Error save user ${err}`);
-                        resolve({'err': false, 'msg': 'The new user is registered'});
-                    })
+                        if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
+                    });
+                    resolve({'err': false, data: {'msg': 'The new user is registered'}});
                 });
             }
         });
@@ -88,28 +88,26 @@ module.exports.login = (obj) => {
     let promise = new Promise((resolve, reject) => {
         Users.findOne({email: obj.email}).exec((err, user) => {
             if (err) {
-                reject(err);
+                return next(err);
             }
-            if (user == null) {
-                reject({err: true, msg: 'User is not found'});
-            } else {
+            if (user) {
                 if ((bCrypt.compareSync(obj.password, user.password))) {
                     let date = new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes).toString();
                     user.sessiontoken = createHash(date);
                     user.sessiondate = date;
                     // user.tokensession = (new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes)).toString();
                     user.save((err) => {
-                        if (err) console.log(err);
+                        if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
                     });
-                    resolve({err: false, token: user.sessiontoken});
+                    resolve({err: false, data: {token: user.sessiontoken}});
                 } else {
-                    reject({err: true, msg: 'Incorrect password'});
+                    resolve({err: true, data: {msg: 'Incorrect password'}});
                 }
+            } else {
+                resolve({err: true, data: {msg: 'User is not found'}});
             }
-
         });
     });
-
     return promise;
 };
 
