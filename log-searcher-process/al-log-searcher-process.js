@@ -26,10 +26,9 @@
 //         }
 //     }
 // }
-
-const express = require('express');
-const app = express();
-const http = require('http').Server(app);
+const http = require('http').Server(function (req, res) {
+    res.sendFile(__dirname + '/index.html');
+});
 const io = require('socket.io')(http);
 
 options = {
@@ -40,7 +39,6 @@ let runSearcherProcess = (port) => {
     http.listen(port, () => {
         console.log(`server is running on port ${port}`);
     });
-    app.use(express.static(__dirname + '/'));
 
     io.on('connection', (socket) => {
         console.log('connection have been established');
