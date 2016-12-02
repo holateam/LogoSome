@@ -3,6 +3,7 @@ body {
     color: white;
 }
 .msgErr{
+    text-align: center;
     visibility: hidden;
     color: #ff5e26;
 }
@@ -37,4 +38,8 @@ body {
 
 #event_list {
     padding: 25px 20px;
+}
+
+#content {
+    padding: 60px 0 0 0;
 }

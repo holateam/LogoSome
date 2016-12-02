@@ -1,20 +1,53 @@
 const express = require('express');
 const router = express.Router();
-const log = require('winston');
 const path = require('path');
+const db_query = require('../modules/db_query');
 
+/* GET home page. */
 router.get('/', (req, res, next) => {
-    log.info(`get '/' `);
-    res.status(200).sendFile(path.join(__dirname, '../public/index.html'));
+    res.render('index', {title: 'Express'});
 });
 
 router.get('/login', (req, res, next) => {
-    log.info(`get '/login'`);
-    res.status(200).sendFile(path.join(__dirname, '../public/views/login.html'));
+    res.render('login');
 });
 
-// router.get("/404").get((req, res) => {
-//     console.log('Error');
-// });
+router.get('/register', (req, res, next) => {
+    res.render('register');
+});
+
+let standardRes = (err, resp) => {
+    return err ? {
+        success: !err,
+        msg: resp
+    } : {
+        success: !err,
+        data: resp
+    };
+};
+
+router.route('/api/v1/login').post((req, res, next) => {
+    db_query.login(req.body).then((result) => {
+        res.json(200,standardRes(result.err, result.data));
+    }).catch((result) => {
+        res.json(500,standardRes(result.err, result.data));
+    });
+});
+
+router.route('/api/v1/registration').post((req, res, next) => {
+    db_query.registration(req.body).then((result) => {
+        res.json(200,standardRes(result.err, result.data));
+    }).catch((result) => {
+        res.json(500,standardRes(result.err, result.data));
+    });
+});
+
+router.route('/api/v1/cookie-session').post((req, res, next) => {
+    db_query.cookieSession(req.body.cookie).then((result) => {
+        res.json(200, standardRes(result.err, result.data));
+    }).catch((result) => {
+        res.json(500, standardRes(result.err, result.data));
+    });
+});
 
 module.exports = router;

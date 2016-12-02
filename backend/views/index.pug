@@ -1,0 +1,14 @@
+extends layout
+
+block content
+    //h1.text-center= title
+    //p.text-center Welcome to #{title}
+    #content.container
+        .row
+            h1.text-center Your events
+            .wrap-dashboard.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                #dashboard
+                    ul#event_list.list-unstyled.text-left
+            .wrap-dashboard-nav.col-lg-12.col-md-12.col-sm-12.col-xs-12
+                .form-group
+                    input#filter.form-control(type='text', placeholder='Search')

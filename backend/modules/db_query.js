@@ -4,12 +4,12 @@ const bCrypt = require('bcrypt');
 
 
 module.exports.getStreamFiles = () => {
-  let promise = new Promise ((resolve, reject) => {
-      Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"},{"streams.$": 1}, (err, user) => {
-          console.log(user);
-      });
+    let promise = new Promise((resolve, reject) => {
+        Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
+            console.log(user);
+        });
 
-  });
+    });
     return promise;
 };
 
@@ -31,39 +31,39 @@ module.exports.getUsers = () => {
 
 module.exports.cookieSession = (cookie) => {
     let token = getCookie('token', cookie);
-    console.log(token);
     let promise = new Promise((resolve, reject) => {
         Users.findOne({"sessiontoken": token}, {
             "_id": 0, "password": 0,
             "sessiondate": 0
-        }, (err, user) => {
+        }).exec((err, user) => {
             if (err) {
-                console.log(`Error sign up:  ${err}`);
+                return next(err);
             }
-            if (user) {
+            if (user && token) {
                 if (user.sessiontoken == token) {
                     resolve({
-                        username: user.username, email: user.email, host: user.host,
-                        port: user.port, streams: user.streams.map(item => item.name)
+                        err: false, data: {
+                            username: user.username, email: user.email, host: user.host,
+                            port: user.port, streams: user.streams.map(item => item.name)
+                        }
                     });
                 }
             } else {
-                reject({'msg': 'Invalid token'});
+                resolve({err: true, data: {'msg': 'Invalid token'}});
             }
         })
     });
     return promise
 };
 
-module.exports.signUp = (obj) => {
+module.exports.registration = (obj) => {
     let promise = new Promise((resolve, reject) => {
-        Users.findOne({'email': obj.email}, (err, user) => {
+        Users.findOne({'email': obj.email}).exec((err, user) => {
             if (err) {
-                console.log(`Error sign up:  ${err}`);
+                return next(err);
             }
             if (user) {
-                console.log(`User alerady existis`);
-                reject({'msg': 'User alerady existis'});
+                resolve({'err': true, data: {'msg': 'Users with this email already exists'}});
             } else {
                 let newUser = new Users();
                 newUser.email = obj.email;
@@ -74,33 +74,37 @@ module.exports.signUp = (obj) => {
                 Users.find({}).then((line) => {
                     newUser.port = line[line.length - 1].port + 1;
                     newUser.save((err) => {
-                        if (err) console.log(`Error save user ${err}`);
-                        resolve();
-                    })
+                        if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
+                    });
+                    resolve({'err': false, data: {'msg': 'The new user is registered'}});
                 });
             }
-        })
+        });
     });
     return promise;
 };
 
-module.exports.signIn = (obj) => {
+module.exports.login = (obj) => {
     let promise = new Promise((resolve, reject) => {
-        Users.findOne({email: obj.email}, (err, user) => {
-            if (err) reject(err);
-            if ((bCrypt.compareSync(obj.password, user.password))) {
-                let date = new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes).toString();
-                user.sessiontoken = createHash(date);
-                user.sessiondate = date;
-
-                // user.tokensession = (new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes)).toString();
-                user.save((err) => {
-                    console.log("save");
-                    if (err) console.log(err);
-                });
-                resolve({err: false, token: user.sessiontoken});
+        Users.findOne({email: obj.email}).exec((err, user) => {
+            if (err) {
+                return next(err);
+            }
+            if (user) {
+                if ((bCrypt.compareSync(obj.password, user.password))) {
+                    let date = new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes).toString();
+                    user.sessiontoken = createHash(date);
+                    user.sessiondate = date;
+                    // user.tokensession = (new Date(new Date().getTime() + 60 * 1000 * config.session.timeMinutes)).toString();
+                    user.save((err) => {
+                        if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
+                    });
+                    resolve({err: false, data: {token: user.sessiontoken}});
+                } else {
+                    resolve({err: true, data: {msg: 'Incorrect password'}});
+                }
             } else {
-                resolve({err: true});
+                resolve({err: true, data: {msg: 'User is not found'}});
             }
         });
     });
@@ -124,7 +128,6 @@ module.exports.getNameStreams = (userHost, userPort) => {
 };
 
 module.exports.saveAddressOfFile = (userHost, userPort, nameStream, addressFile) => {
-    console.log("--->  save address file in db: " + addressFile);
     Users.findOne({host: userHost, port: userPort}, (err, doc) => {
         doc.streams.forEach(stream => {
             if (stream.name == nameStream) {
