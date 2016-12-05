@@ -1,8 +1,8 @@
 'use strict';
 
 
-const fileReader = require('./modules/fileReader.js');
-const logsHandler = require('./modules/logsHandler.js');// TODO replace on filter function
+const fileReader = require('./fileReader.js');
+const logsHandler = require('./logsHandler.js');// TODO replace on filter function
 
 class FileSearcher {
     constructor(heartbeatInterval, filePath, filter, limit, reverseDirection, cb) {
