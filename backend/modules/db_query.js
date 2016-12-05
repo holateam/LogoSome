@@ -15,15 +15,21 @@ module.exports.getStreamFiles = () => {
 
 module.exports.getUsers = () => {
     let promise = new Promise((resolve, reject) => {
-        Users.find({}, (err, res) => {
+        Users.find({},{
+            "port": 1, "host": 1,
+            "username": 1, "streams": 1
+        }).exec( (err, res) => {
             if (err) {
-                reject(err);
+                return next(err);
             }
+            // if(!authentication){
+            //     reject({err: true, data: 'No access'});
+            // }
             let array = [];
             res.forEach(user => {
                 array.push(user);
             });
-            resolve(array);
+            resolve({err: false, data: array});
         });
     });
     return promise;
