@@ -2,6 +2,7 @@ const log = require('./modules/log')(module);
 const request = require('request');
 const tcp = require('net');
 const config = require('./config.json');
+const logProcessor = require('./modules/logProcessor');
 
 let logReceiverProcess = new LogReceiverProcess();
 logReceiverProcess.run();
@@ -9,7 +10,7 @@ logReceiverProcess.run();
 
 function LogReceiverProcess() {
     this.run = () => {
-        let bufferArrays = {};
+        let logProcessors = new Map();
 
         runServerSocketIO(config.receiver.host, config.receiver.port);
         runClientSocket(config.searcher.host, config.searcher.port);
@@ -20,28 +21,35 @@ function LogReceiverProcess() {
                 if (response.statusCode == 200) {
                     response.setEncoding('utf8');
                     response.on('data', (result) => {
-                        console.log(JSON.stringify(bufferArrays, " ", 4));
-                        runServersTCP(JSON.parse(result).data);
+                        createLogProcessors(JSON.parse(result).data);
                     });
                 }
             });
 
-        function runServersTCP(users) {
+        function createLogProcessors (users){
             users.forEach(user => {
-                let server = tcp.createServer();
-                server.on('connection', socket => {
-                    socket.on('data', data => {
-                        log.info(data.toString() + '\n');
-                        log.info(user.host + ":" + user.port);
-                    });
-                });
-                server.listen(user.port, user.host, () => {
-                    bufferArrays[user.host + ":" + user.port] = {};
-                    log.debug(JSON.stringify(bufferArrays, " ", 4));
-                    log.info(`Server TCP user run: ${user.host}:${user.port} \n`);
-                });
+                logProcessors.set(user._id, new logProcessor(user));
+                console.log('послe: '+ JSON.stringify(logProcessors.get(user._id)));
             });
         }
+
+
+        // function runServersTCP(users) {
+        //     users.forEach(user => {
+        //         let server = tcp.createServer();
+        //         server.on('connection', socket => {
+        //             socket.on('data', data => {
+        //                 log.info(data.toString() + '\n');
+        //                 log.info(user.host + ":" + user.port);
+        //             });
+        //         });
+        //         server.listen(user.port, user.host, () => {
+        //             bufferArrays[user.host + ":" + user.port] = {};
+        //             log.debug(JSON.stringify(bufferArrays, " ", 4));
+        //             log.info(`Server TCP user run: ${user.host}:${user.port} \n`);
+        //         });
+        //     });
+        // }
 
         function runServerSocketIO(host, port) {
             const server = require('http').createServer();

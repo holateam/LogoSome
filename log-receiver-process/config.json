@@ -10,5 +10,7 @@
   "searcher": {
     "host": "localhost",
     "port": 4000
-  }
+  },
+  "dirname": "/home/lex/myProject/logosome/logs/",
+  "encoding": "utf8"
 }

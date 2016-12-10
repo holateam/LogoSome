@@ -5,7 +5,8 @@ module.exports = (module) => {
 };
 
 function makeLogger (path) {
-    if(path.match(/log-receiver-process.js$/)){
+    // if(path.match(/log-receiver-process.js$/)){
+    if(true){
         let transports = [
             new winston.transports.Console({
                 timestamp: true,
