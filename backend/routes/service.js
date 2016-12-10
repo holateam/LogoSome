@@ -23,6 +23,10 @@ router.get('/api/v1/getUsers', (req, res, next) => {
 
 });
 
+router.post('/api/v1/saveTheInfoOfFile', (req,res, next) => {
+    console.log(JSON.stringify(req));
+});
+
 // router.route('/api/v1/cookie-session').post((req, res, next) => {
 //     db_query.cookieSession(req.body.cookie).then((result) => {
 //         res.json(200, standardRes(result.err, result.data));
