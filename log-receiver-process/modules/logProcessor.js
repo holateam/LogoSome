@@ -7,6 +7,11 @@ const generationNameFileStr = require('./generationNameFileStr');
 const config = require('../config.json');
 
 module.exports = function logProcessor(user) {
+    this.searchInBuffer = (streamId, nameFile, filters, startLineNumber, direction, limit) => {
+        return bufferArrays[streamId].bufferArray.filter(log => {
+            return log.indexOf(filters);
+        });
+    };
     let bufferArrays = {};
     let userId = user._id;
     let host = user.host;
@@ -18,7 +23,6 @@ module.exports = function logProcessor(user) {
         let server = tcp.createServer();
         server.on('connection', socket => {
             socket.on('data', data => {
-                console.log(host + ":" + port + " -> " + data.toString() + ' <--'+'\n');
                 saveLogs(data);
             });
         });
@@ -40,39 +44,38 @@ module.exports = function logProcessor(user) {
         }
 
         data.toString().split('\n').forEach(line => {
-            if (line != "") {
-                console.log('Line: ' + line);
-                bufferArrays[nameStream].bufferArray.push(new Date().toISOString() + ' ' + parseToString(line));
-            }
-            if (bufferArrays[nameStream].bufferArray.length >= limit) {
 
-                console.log('limit = 10');
+            if (bufferArrays[nameStream].bufferArray.length >= limit) {
                 let buffer = JSON.parse(JSON.stringify(bufferArrays[nameStream].bufferArray));
                 let nameFile = bufferArrays[nameStream].namefile;
-                bufferArrays[nameStream] = null;
+                bufferArrays[nameStream] = false;
+
                 saveInFile(userId, nameStream, nameFile, buffer, (address) => {
-                    console.log('1db_query_save_adress: ' + address);
 
                     request
-                        .post(`http://${config.backend.host}:${config.backend.port}/service/api/v1/saveTheInfoOfFile`,
-                            {
+                        .post({
+                            url: `http://${config.backend.host}:${config.backend.port}/service/api/v1/saveTheInfoOfFile`,
+                            form: {
                                 userId: userId,
                                 nameStream: nameStream,
                                 namefile: address
-                            })
+                            }
+                        })
                         .on('response', function (response) {
                             if (response.statusCode == 200) {
                                 response.setEncoding('utf8');
                                 response.on('data', (result) => {
-                                    console.log(JSON.parse(result).data);
+                                    console.log(JSON.stringify(result));
                                 });
                             }
                         });
-                    // db_query.saveAddressOfFile(userHost, userPort, nameFile, address);
-                    // arrayBuffer[nameFile].splice(0, limit);
                 });
 
+            }
 
+            if (line != "") {
+                console.log('Line: ' + line);
+                bufferArrays[nameStream].bufferArray.push(new Date().toISOString() + ' ' + parseToString(line));
             }
         });
     }
