@@ -9,6 +9,7 @@ io.on('connection', function (socket) {
     let agregator = null;
 
     socket.on('init', function (data) {
+        console.log(data);
         REQUEST
             .post({
                 url: `http://${CONFIG.backend.host}:${CONFIG.backend.port}/service/api/v1/getUser`,
@@ -21,8 +22,8 @@ io.on('connection', function (socket) {
                     response.setEncoding('utf8');
                     response.on('data', (result) => {
                         console.log(JSON.stringify(result));
-                        agregator = createAgregator(result.data.id, result.data.streams, data.filter, 100, 2000, direction, function (logsForSend) {
-                            io.emit("Logs",logsForSend);
+                        agregator = createAgregator(result.data.__id, result.data.streams, data.filter, 100, 2000, direction, function (logsForSend, direction) {
+                            io.emit("Logs",logsForSend, direction);
                         });
                     });
                 }
@@ -115,7 +116,7 @@ function createAgregator (id, watchedFiles, filters, limit, heartbeatInterval, d
 
         if (startLive) {
             searchers.forEach(function (searcher, streamIndex) {
-                searcher.emit('live', {token, streamId: watchedFiles[streamIndex], streamIndex, filters})
+                searcher.emit('live', {id, streamId: watchedFiles[streamIndex], streamIndex, filters})
             })
         }
     }
@@ -190,14 +191,14 @@ function createAgregator (id, watchedFiles, filters, limit, heartbeatInterval, d
         getLogs: function (direction) {
             searchers.forEach(function (searcher) {
                 if (searcher) {
-                    searcher.emit("moreLogs", {id, direction})
+                    searcher.emit("moreLogs", {id, direction});
                 }
             })
         },
         live: function (status) {
             searchers.forEach(function (searcher) {
                 if (searcher) {
-                    searcher.emit("live")
+                    searcher.emit("live", status);
                 }
             })
         }
