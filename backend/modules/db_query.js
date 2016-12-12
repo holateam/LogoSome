@@ -4,34 +4,38 @@ const bCrypt = require('bcrypt');
 
 
 module.exports.getStreamFiles = () => {
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
             console.log(user);
         });
 
     });
-    return promise;
 };
 
 module.exports.getUsers = () => {
-    let promise = new Promise((resolve, reject) => {
-        Users.find({}, (err, res) => {
+    return new Promise((resolve, reject) => {
+        Users.find({}, {
+            "port": 1, "host": 1,
+            "username": 1, "streams": 1
+        }).exec((err, res) => {
             if (err) {
-                reject(err);
+                return next(err);
             }
+            // if(!authentication){
+            //     reject({err: true, data: 'No access'});
+            // }
             let array = [];
             res.forEach(user => {
                 array.push(user);
             });
-            resolve(array);
+            resolve({err: false, data: array});
         });
     });
-    return promise;
 };
 
 module.exports.cookieSession = (cookie) => {
     let token = getCookie('token', cookie);
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         Users.findOne({"sessiontoken": token}, {
             "_id": 0, "password": 0,
             "sessiondate": 0
@@ -53,11 +57,10 @@ module.exports.cookieSession = (cookie) => {
             }
         })
     });
-    return promise
 };
 
 module.exports.registration = (obj) => {
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         Users.findOne({'email': obj.email}).exec((err, user) => {
             if (err) {
                 return next(err);
@@ -81,11 +84,10 @@ module.exports.registration = (obj) => {
             }
         });
     });
-    return promise;
 };
 
 module.exports.login = (obj) => {
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         Users.findOne({email: obj.email}).exec((err, user) => {
             if (err) {
                 return next(err);
@@ -108,11 +110,10 @@ module.exports.login = (obj) => {
             }
         });
     });
-    return promise;
 };
 
 module.exports.getNameStreams = (userHost, userPort) => {
-    let promise = new Promise((resolve, reject) => {
+    return new Promise((resolve, reject) => {
         User.findOne({host: userHost, port: userPort}, (err, res) => {
             if (err) {
                 reject(err);
@@ -124,20 +125,29 @@ module.exports.getNameStreams = (userHost, userPort) => {
             resolve(array);
         });
     });
-    return promise;
 };
 
-module.exports.saveAddressOfFile = (userHost, userPort, nameStream, addressFile) => {
-    Users.findOne({host: userHost, port: userPort}, (err, doc) => {
-        doc.streams.forEach(stream => {
-            if (stream.name == nameStream) {
-                stream.fileslist.push({namefile: addressFile});
+module.exports.saveTheInfoOfFile = (userId, nameStream, addressFile) => {
+    return new Promise((resolve, reject) => {
+        Users.findOne({_id: userId}).exec((err, doc) => {
+            if (err) {
+                return next(err);
             }
-        });
-        doc.save((err) => {
-            if (err) console.log(err);
+            doc.streams.forEach(stream => {
+                if (stream.name == nameStream) {
+                    stream.fileslist.push({namefile: addressFile});
+                }
+            });
+            doc.save((err) => {
+                if (err) {
+                    console.log(err);
+                    reject({err: true, data: {msg: 'error writing file information'}})
+                }
+                resolve({err: false, data: {msg: 'save the info of file'}});
+            });
         });
     });
+
 };
 
 // Generates hash using bCrypt
