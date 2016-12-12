@@ -42,6 +42,12 @@ var model = {
         // user.reverseDirection = true;
         // user.filters= "";
         // socket.emit('get logs old', user);
+    },
+    getCookie: function (name) {
+        var matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 };
 /* ------------------------------- end model ---------------------------------*/
@@ -149,6 +155,8 @@ var user = {
         main: function () {
             if (document.cookie) {
                 controller.cookieSession(document.cookie);
+                let socket = io.connect('http://localhost:3006');
+                socket.emit('init', {"token": model.getCookie('token'), "filter": ""});
             }
         },
         event: function () { // тут навешиваем слушателей на события

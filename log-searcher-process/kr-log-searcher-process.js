@@ -26,13 +26,17 @@
 //         }
 //     }
 // }
-const http = require('http').Server(function (req, res) {
-    res.sendFile(__dirname + '/index.html');
-});
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
 const io = require('socket.io')(http);
 
 options = {
-    port: 4000
+    port: 4000,
+};
+
+apiNames = {
+    streamId: 'streamId'
 };
 
 let runSearcherProcess = (port) => {
@@ -40,12 +44,38 @@ let runSearcherProcess = (port) => {
         console.log(`server is running on port ${port}`);
     });
 
+    app.use(express.static(__dirname + '/'));
+
     io.on('connection', (socket) => {
         console.log('connection have been established');
 
-        socket.on('getLogs', (paramsJson) => {
-            createSearcherInstanceWithParamsForEachStreamId(paramsJson);
+        socket.on('getLogsWithNewFilter', (params) => {
+            createSearcherInstancePairWithParams(params);
         });
+    });
+};
+
+let createSearcherPairWithParams = (params) => {
+    return  {
+        olderDirectionSearcher: {
+
+        },
+        newerDirectionSearcher: {
+
+        }
+    };
+
+};
+
+
+
+let getParamsForEachSearcherPair = (params) => {
+    return params[apiNames.streamId].map( (item) => {
+           return {
+               if(item) {
+                   forEach
+               }
+           }
     });
 };
 
