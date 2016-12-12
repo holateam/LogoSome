@@ -6,6 +6,7 @@ const generationDirnameStr = require('./generationDirnameStr');
 const generationNameFileStr = require('./generationNameFileStr');
 const config = require('../config.json');
 
+
 module.exports = function logProcessor(user) {
     this.searchInBuffer = (streamId, nameFile, filters, startLineNumber, direction, limit) => {
         return bufferArrays[streamId].bufferArray.filter(log => {
