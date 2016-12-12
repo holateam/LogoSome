@@ -2,23 +2,36 @@ const Users = require('./userSchema');
 const config = require('../config.json');
 const bCrypt = require('bcrypt');
 
-module.exports.getUser = () => {
-   return new Promise((resolve, reject) => {
-       Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
-           console.log(user);
-       });
-
-   });
-};
-
-module.exports.getStreamFiles = () => {
+module.exports.getUser = (obj) => {
     return new Promise((resolve, reject) => {
-        Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
-            console.log(user);
-        });
+        Users.findOne({"sessiontoken": obj.token}, {
+            "password": 0,"port":0,
+            "sessiondate": 0
+        }).exec((err, user) => {
+            if (err) {
+                reject({err: true, data:{msg: 'err db '}});
+                console.log(err);
+            }
+            console.log(JSON.stringify(user));
+            function createStreamsArray(user){
+                return  user.streams.map(value => {
+                    return value.name;
+                });
+            }
+            resolve({err: false, data: {_id: user._id, streams: createStreamsArray(user) }});
+        })
 
     });
 };
+
+// module.exports.getStreamFiles = () => {
+//     return new Promise((resolve, reject) => {
+//         Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
+//            if(err)
+//         });
+//
+//     });
+// };
 
 module.exports.getUsers = () => {
     return new Promise((resolve, reject) => {
