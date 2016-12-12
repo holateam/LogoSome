@@ -3,21 +3,30 @@ const config = require('../config.json');
 const bCrypt = require('bcrypt');
 
 module.exports.getFilesStream = (obj) => {
-  return new Promise((resolve, reject) => {
-     User.findOne({"_id": obj.userId}).exec((err, user) => {
-        if(err)
-            reject({err: true, data: {msg: 'err db'}});
-         console.log(JSON.stringify(user));
-         function createArrayFilesStream(user){
-             return user.stream.map(value => {
-                 if(value.name === obj.nameStream){
-                     return value.fileslist.namefile;
-                 }
-             })
-         }
-         resolve({err: false, data: {filesStream: createArrayFilesStream(user) }});
-     });
-  });
+    return new Promise((resolve, reject) => {
+        console.log(JSON.stringify(obj));
+        Users.findOne({'_id': obj.userId}).exec((err, user) => {
+            if(err)
+                reject({err: true, data: {msg: 'err db'}});
+            console.log(JSON.stringify(user));
+            function createArrayFilesStream(user){
+                let array = [];
+                user.streams.forEach(value => {
+                    console.log(JSON.stringify(value));
+                    if(value.name === obj.nameStream){
+                        console.log(value.fileslist.namefile);
+                        array= value.fileslist.map(file => {
+                            return file.namefile;
+                        });
+                    }
+                });
+                return array
+            }
+
+            console.log(createArrayFilesStream(user));
+            resolve({err: false, data: {filesStream: createArrayFilesStream(user) }});
+        });
+    });
 };
 
 module.exports.getUser = (obj) => {

@@ -16,10 +16,10 @@ function runServerSocketIO(host, port) {
 
     io.on('connection', (socket) => {
 
-        socket.emit('news', {hello: 'world'});
+        // socket.emit('news', {hello: 'world'});
         socket.on('getLogs', (data) => {
             let filesStream = [];
-            console.log(data);
+            console.log("getLogs data: " + JSON.stringify(data));
             request
                 .post({
                     url: `http://${config.backend.host}:${config.backend.port}/service/api/v1/getFilesStream`,
@@ -39,7 +39,7 @@ function runServerSocketIO(host, port) {
                 });
             let logSearcherProcess = new mainSearcher(data._id, data.streamId, data.streamIndex,
                 data.filter, data.heartbeatInterval, filesStream, data.direction);
-            searchInBuffer(userId, streamId, nameFile, startLineNumber, direction, limit, filters, cb);
+            // searchInBuffer(userId, streamId, nameFile, startLineNumber, direction, limit, filters, cb);
         });
 
         socket.on('moreLogs', (data) => {
