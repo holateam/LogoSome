@@ -21,8 +21,9 @@ io.on('connection', function (socket) {
                 if (response.statusCode == 200) {
                     response.setEncoding('utf8');
                     response.on('data', (result) => {
-                        console.log(JSON.stringify(result));
-                        agregator = createAgregator(result.data.__id, result.data.streams, data.filter, 100, 2000, direction, function (logsForSend, direction) {
+                        let userInfo = JSON.parse(result);
+                        // let aresult = JSON.parse(result);
+                        agregator = createAggregator(userInfo.data._id, userInfo.data.streams, data.filter, 100, 2000, "older", function (logsForSend, direction) {
                             io.emit("Logs",logsForSend, direction);
                         });
                     });
@@ -51,6 +52,7 @@ io.on('connection', function (socket) {
     });
 
     socket.on("getLogs", function (direction) {
+        console.log("getLogs!", direction);
         agregator.getLogs(direction);
     });
 
@@ -58,11 +60,12 @@ io.on('connection', function (socket) {
 
 
 http.listen(3006, function () {
-    console.log('listening on *:3000');
+    console.log('listening on *:3006');
 });
 
 
-function createAgregator (id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
+function createAggregator (_id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
+    console.log(_id, watchedFiles, filters, limit, heartbeatInterval, direction);
     const TIMESTAMP_LENGTH = 24;
     let buffersForOldLogs = [];
     let buffersForNewLogs = [];
@@ -71,14 +74,12 @@ function createAgregator (id, watchedFiles, filters, limit, heartbeatInterval, d
     let minTimestamp;
     let maxTimestamp;
     let readyToLive = [];
-    let searchersParas = [];
-
     let searchers = [];
 
     watchedFiles.forEach((streamId, streamIndex) => {
-        searchers[streamIndex] = require("socket.io-client")("http://localhost:3001");
+        searchers[streamIndex] = require("socket.io-client")("http://localhost:4000");
 
-        searchers[streamIndex].emit("getLogs", {id, streamId, streamIndex, filters, direction, limit, heartbeatInterval});
+        searchers[streamIndex].emit("getLogs", {_id, streamId, streamIndex, filters, direction, limit, heartbeatInterval});
 
         searchers[streamIndex].on("logs", function ({streamIndex, direction, lastTimestamp, noMoreLogs, logs}) {
             if (logs && logs.length > 0) {
