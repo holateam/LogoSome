@@ -2,6 +2,24 @@ const Users = require('./userSchema');
 const config = require('../config.json');
 const bCrypt = require('bcrypt');
 
+module.exports.getFilesStream = (obj) => {
+  return new Promise((resolve, reject) => {
+     User.findOne({"_id": obj.userId}).exec((err, user) => {
+        if(err)
+            reject({err: true, data: {msg: 'err db'}});
+         console.log(JSON.stringify(user));
+         function createArrayFilesStream(user){
+             return user.stream.map(value => {
+                 if(value.name === obj.nameStream){
+                     return value.fileslist.namefile;
+                 }
+             })
+         }
+         resolve({err: false, data: {filesStream: createArrayFilesStream(user) }});
+     });
+  });
+};
+
 module.exports.getUser = (obj) => {
     return new Promise((resolve, reject) => {
         Users.findOne({"sessiontoken": obj.token}, {
