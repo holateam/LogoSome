@@ -4,7 +4,7 @@ const bCrypt = require('bcrypt');
 
 module.exports.getFilesStream = (obj) => {
     return new Promise((resolve, reject) => {
-        console.log(JSON.stringify(obj));
+        console.log("qury: " + JSON.stringify(obj));
         Users.findOne({'_id': obj.userId}).exec((err, user) => {
             if(err)
                 reject({err: true, data: {msg: 'err db'}});
@@ -109,9 +109,9 @@ module.exports.cookieSession = (cookie) => {
 
 module.exports.registration = (obj) => {
     return new Promise((resolve, reject) => {
-        Users.findOne({'email': obj.email}).exec((err, user) => {
+        Users.findOne({'email': obj.email}, (err, user) => {
             if (err) {
-                return next(err);
+                reject({err: true, data: {msg: "Server error, please reload pages"}});
             }
             if (user) {
                 resolve({'err': true, data: {'msg': 'Users with this email already exists'}});
@@ -122,8 +122,10 @@ module.exports.registration = (obj) => {
                 newUser.username = obj.username;
                 newUser.host = '127.0.0.1';
                 // newUser.port = 0;
-                Users.find({}).then((line) => {
-                    newUser.port = line[line.length - 1].port + 1;
+                Users.find({}, (err, users) => {
+                    if (err)
+                        console.log(err);
+                    newUser.port = (users.length !== 0) ? users[users.length-1].port + 1 : 30000; // users port
                     newUser.save((err) => {
                         if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
                     });

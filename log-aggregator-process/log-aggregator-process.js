@@ -24,7 +24,7 @@ io.on('connection', function (socket) {
                         let userInfo = JSON.parse(result);
                         // let aresult = JSON.parse(result);
                         agregator = createAggregator(userInfo.data._id, userInfo.data.streams, data.filter, 100, 2000, "older", function (logsForSend, direction) {
-                            io.emit("Logs",logsForSend, direction);
+                            io.emit("Logs", logsForSend, direction);
                         });
                     });
                 }
@@ -64,7 +64,7 @@ http.listen(3006, function () {
 });
 
 
-function createAggregator (_id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
+function createAggregator(_id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
     console.log(_id, watchedFiles, filters, limit, heartbeatInterval, direction);
     const TIMESTAMP_LENGTH = 24;
     let buffersForOldLogs = [];
@@ -79,7 +79,15 @@ function createAggregator (_id, watchedFiles, filters, limit, heartbeatInterval,
     watchedFiles.forEach((streamId, streamIndex) => {
         searchers[streamIndex] = require("socket.io-client")("http://localhost:4000");
 
-        searchers[streamIndex].emit("getLogs", {_id, streamId, streamIndex, filters, direction, limit, heartbeatInterval});
+        searchers[streamIndex].emit("getLogs", {
+            _id,
+            streamId,
+            streamIndex,
+            filters,
+            direction,
+            limit,
+            heartbeatInterval
+        });
 
         searchers[streamIndex].on("logs", function ({streamIndex, direction, lastTimestamp, noMoreLogs, logs}) {
             if (logs && logs.length > 0) {
@@ -91,14 +99,14 @@ function createAggregator (_id, watchedFiles, filters, limit, heartbeatInterval,
             }
             if (direction == "older") {
                 if (noMoreLogs || lastTimestamp)
-                    timestampsForOld[streamIndex] = noMoreLogs ?  0 : lastTimestamp;
+                    timestampsForOld[streamIndex] = noMoreLogs ? 0 : lastTimestamp;
 
                 if (timestampsForOld.length == watchedFiles.length) {
                     srez(direction);
                 }
             } else if (direction == "newer") {
                 if (noMoreLogs || lastLine)
-                    timestampsForNew[streamIndex] = noMoreLogs ?  new Date(Date.now() + 86400000).getTime() : lastTimestamp;
+                    timestampsForNew[streamIndex] = noMoreLogs ? new Date(Date.now() + 86400000).getTime() : lastTimestamp;
                 if (noMoreLogs) {
                     readyToLive[streamIndex] = true;
                     startLiveMode();

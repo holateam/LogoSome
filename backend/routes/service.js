@@ -22,6 +22,7 @@ router.route('/api/v1/getUser').post((req, res, next) => {
 });
 
 router.route('api/v1/getFilesStream').post((req,res,next) => {
+    console.log("DB: " + req.body);
    db_query.getFilesStream(req.body).then((result) => {
       res.json(200, standardRes(result.err, result.data));
    }).catch((result) => {

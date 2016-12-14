@@ -8,15 +8,52 @@ const config = require('../config.json');
 
 
 module.exports = function logProcessor(user) {
-    this.searchInBuffer = (streamId, nameFile, filters, startLineNumber, direction, limit) => {
-        return bufferArrays[streamId].bufferArray.filter(log => {
-            return log.indexOf(filters);
-        });
-    };
     let bufferArrays = {};
     let userId = user._id;
     let host = user.host;
     let port = user.port;
+
+    this.searchInBuffer = (userId, streamId, streamIndex, filters,
+                           bufferName, startLineNumber, direction, limit, callback) => {
+        console.log(JSON.stringify(bufferArrays));
+        let countLine = startLineNumber;
+        let arrayLogs = [];
+        let namefile = (bufferArrays[streamId]) ? bufferArrays[streamId].namefile : false;
+
+        if ((namefile) && (namefile == bufferName || bufferName == "")) {
+            for (let i = startLineNumber; i < bufferArrays[streamId].bufferArray.length; i++) {
+                if (arrayLogs.length !== limit) {
+                    countLine++;
+                    if (bufferArrays[streamId].bufferArray[i].indexOf(filters)) {
+                        arrayLogs.push(bufferArrays[streamId].bufferArray[i]);
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            callback(
+                {
+                    err: false,
+                    data: {
+                        streamId: streamId,
+                        streamIndex: streamIndex,
+                        bufferName: namefile,
+                        startLineNumber: startLineNumber,
+                        finishLineNumber: countLine,
+                        lastLine: arrayLogs[arrayLogs.length - 1],
+                        noMoreLogs: (arrayLogs.length - 1 == countLine),
+                        direction: direction,
+                        logs: arrayLogs
+                    }
+                }
+            );
+        } else {
+            callback({err: true, data: {}});
+        }
+
+
+    };
 
     runServerTCP(host, port);
 
@@ -29,7 +66,7 @@ module.exports = function logProcessor(user) {
         });
 
         server.listen(port, host, () => {
-            log.info(`Server TCP user run: ${host}:${port} \n`);
+            log.info(`Server TCP user run: ${host}:${port}`);
         });
     }
 
