@@ -35,10 +35,6 @@ options = {
     port: 4000,
 };
 
-apiNames = {
-    streamId: 'streamId'
-};
-
 let runSearcherProcess = (port) => {
     http.listen(port, () => {
         console.log(`server is running on port ${port}`);
@@ -49,35 +45,56 @@ let runSearcherProcess = (port) => {
     io.on('connection', (socket) => {
         console.log('connection have been established');
 
+        let callBack = () => {
+            return socket.emit("logs", (pararms));
+        };
+
         socket.on('getLogsWithNewFilter', (params) => {
+            params.cb = callBack;
             createSearcherInstancePairWithParams(params);
         });
     });
 };
 
 let createSearcherPairWithParams = (params) => {
-    return  {
-        olderDirectionSearcher: {
-
-        },
-        newerDirectionSearcher: {
-
-        }
-    };
-
+    let searchersArr = [];
+    let newerDirectionSearcher = createSearcherInsatanceWithParams(params, "newer");
+    let olderDirectionSearcher = createSearcherInsatanceWithParams(params, "older");
+    arr.push(newerDirectionSearcher);
+    arr.push(olderDirectionSearcher);
+    runSearcherInstances(searchersArr);
 };
 
+let createSearcherInsatanceWithParams = (params, stringDirection) => {
+    let searcherInstance = {};
+    searcherInstance.params = params;
+    searcherInstance.params.direction = stringDirection;
 
+    return searcherInstance;
+};
 
-let getParamsForEachSearcherPair = (params) => {
-    return params[apiNames.streamId].map( (item) => {
-           return {
-               if(item) {
-                   forEach
-               }
-           }
+let runSearcherInstances = (instancesArr) => {
+    instancesArr.forEach((instance) => run(instance));
+};
+
+function runInstance(instance, host, port) {
+    const socket = require('socket.io-client')(`http://${host}:${port}`);
+    socket.connect(RECEIVER_PORT, RECEIVER_PORT);
+
+    socket.on('connect', () => {
+        socket.emit("getLogs", params);
+
+        socket.on("receiver heart beat", (res) => {
+            params.cb();
+
+            if (res.noMoreLogs) {
+                searchInFiles(instance, params);
+            }
+        });
     });
-};
+
+    return socket;
+}
 
 runSearcherProcess(options.port);
 
