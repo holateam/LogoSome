@@ -1,4 +1,71 @@
-exports.createAgregator = (token, watchedFiles, filters, limit, heartbeatInterval, callback) => {
+let express = require("express");
+var app = express();
+var http = require('http').Server(app);
+var io = require('socket.io')(http);
+const REQUEST = require('request');
+const CONFIG = require('./config.json');
+
+io.on('connection', function (socket) {
+    let agregator = null;
+
+    socket.on('init', function (data) {
+        console.log(data);
+        REQUEST
+            .post({
+                url: `http://${CONFIG.backend.host}:${CONFIG.backend.port}/service/api/v1/getUser`,
+                form: {
+                    token: data.token
+                }
+            })
+            .on('response', function (response) {
+                if (response.statusCode == 200) {
+                    response.setEncoding('utf8');
+                    response.on('data', (result) => {
+                        let userInfo = JSON.parse(result);
+                        // let aresult = JSON.parse(result);
+                        agregator = createAggregator(userInfo.data._id, userInfo.data.streams, data.filter, 100, 2000, "older", function (logsForSend, direction) {
+                            io.emit("Logs", logsForSend, direction);
+                        });
+                    });
+                }
+            });
+    });
+
+    socket.on('disconnect', function () {
+        console.log('user disconnected');
+    });
+
+    socket.on('pauseLive', function () {
+
+    });
+
+    socket.on('resumeLive', function () {
+
+    });
+
+    socket.on("getFilteredLogs", function (filter) {
+        console.log("get filtered logs" + filter);
+    });
+
+    socket.on("getMoreNewLogs", function () {
+        console.log("get new logs");
+    });
+
+    socket.on("getLogs", function (direction) {
+        console.log("getLogs!", direction);
+        agregator.getLogs(direction);
+    });
+
+});
+
+
+http.listen(3006, function () {
+    console.log('listening on *:3006');
+});
+
+
+function createAggregator(_id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
+    console.log(_id, watchedFiles, filters, limit, heartbeatInterval, direction);
     const TIMESTAMP_LENGTH = 24;
     let buffersForOldLogs = [];
     let buffersForNewLogs = [];
@@ -7,13 +74,20 @@ exports.createAgregator = (token, watchedFiles, filters, limit, heartbeatInterva
     let minTimestamp;
     let maxTimestamp;
     let readyToLive = [];
-
     let searchers = [];
 
     watchedFiles.forEach((streamId, streamIndex) => {
-        searchers[streamIndex] = require("socket.io-client")("http://localhost:3001");
+        searchers[streamIndex] = require("socket.io-client")("http://localhost:4000");
 
-        searchers[streamIndex].emit("getLogs", {token, streamsId, streamIndex, filters, direction, limit, heartbeatInterval});
+        searchers[streamIndex].emit("getLogs", {
+            _id,
+            streamId,
+            streamIndex,
+            filters,
+            direction,
+            limit,
+            heartbeatInterval
+        });
 
         searchers[streamIndex].on("logs", function ({streamIndex, direction, lastTimestamp, noMoreLogs, logs}) {
             if (logs && logs.length > 0) {
@@ -25,14 +99,14 @@ exports.createAgregator = (token, watchedFiles, filters, limit, heartbeatInterva
             }
             if (direction == "older") {
                 if (noMoreLogs || lastTimestamp)
-                    timestampsForOld[streamIndex] = noMoreLogs ?  0 : lastTimestamp;
+                    timestampsForOld[streamIndex] = noMoreLogs ? 0 : lastTimestamp;
 
                 if (timestampsForOld.length == watchedFiles.length) {
                     srez(direction);
                 }
             } else if (direction == "newer") {
                 if (noMoreLogs || lastLine)
-                    timestampsForNew[streamIndex] = noMoreLogs ?  new Date(Date.now() + 86400000).getTime() : lastTimestamp;
+                    timestampsForNew[streamIndex] = noMoreLogs ? new Date(Date.now() + 86400000).getTime() : lastTimestamp;
                 if (noMoreLogs) {
                     readyToLive[streamIndex] = true;
                     startLiveMode();
@@ -51,7 +125,7 @@ exports.createAgregator = (token, watchedFiles, filters, limit, heartbeatInterva
 
         if (startLive) {
             searchers.forEach(function (searcher, streamIndex) {
-                searcher.emit('live', {token, streamId: watchedFiles[streamIndex], streamIndex, filters})
+                searcher.emit('live', {id, streamId: watchedFiles[streamIndex], streamIndex, filters})
             })
         }
     }
@@ -126,17 +200,17 @@ exports.createAgregator = (token, watchedFiles, filters, limit, heartbeatInterva
         getLogs: function (direction) {
             searchers.forEach(function (searcher) {
                 if (searcher) {
-                    searcher.emit("moreLogs", {token, direction})
+                    searcher.emit("moreLogs", {id, direction});
                 }
             })
         },
         live: function (status) {
             searchers.forEach(function (searcher) {
                 if (searcher) {
-                    searcher.emit("live")
+                    searcher.emit("live", status);
                 }
             })
         }
     }
-};
+}
 

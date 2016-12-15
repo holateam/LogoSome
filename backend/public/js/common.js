@@ -6,8 +6,12 @@ var view = {
     msgErr: function (data) {
         $('.msgErr').text(data.msg.msg);
         $('.msgErr').css('visibility', 'visible');
+    },
+    addLogs: function (logs) {
+        logs.forEach(function (li) {
+            $("<li>" + li + "</li>").appendTo('ul');
+        });
     }
-
 };
 /* ------------------------------- end view ----------------------------------*/
 
@@ -42,6 +46,12 @@ var model = {
         // user.reverseDirection = true;
         // user.filters= "";
         // socket.emit('get logs old', user);
+    },
+    getCookie: function (name) {
+        var matches = document.cookie.match(new RegExp(
+            "(?:^|; )" + name.replace(/([\.$?*|{}\(\)\[\]\\\/\+^])/g, '\\$1') + "=([^;]*)"
+        ));
+        return matches ? decodeURIComponent(matches[1]) : undefined;
     }
 };
 /* ------------------------------- end model ---------------------------------*/
@@ -136,6 +146,7 @@ var user = {
     reverseDirection: true
 };
 
+let socket;
 /* ------------------- anonymous initialize function ------------------------ */
 
 (function () {
@@ -149,6 +160,16 @@ var user = {
         main: function () {
             if (document.cookie) {
                 controller.cookieSession(document.cookie);
+                view.addLogs(["dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"
+                    ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"]);
+                socket = io.connect('http://localhost:3006');
+                socket.emit('init', {"token": model.getCookie('token'), "filter": ""});
             }
         },
         event: function () { // тут навешиваем слушателей на события
@@ -159,6 +180,26 @@ var user = {
                 });
                 $('#signUp').click(function (event) {
                     controller.signUp(event);
+                });
+
+                $('#dashboard').scroll(function () {
+                    var $this = $(this);
+                    var scrollTop = $this.scrollTop();
+                    var height = $this.height();
+                    var scrollHeight = $this[0].scrollHeight;
+
+                    console.log($this.scrollTop());
+
+                    if (scrollTop == 0) {
+                        console.log('top found');
+                        user.reverseDirection = true;
+                        socket.emit('getLogs', "older");
+                    }
+                    if (scrollTop + height == scrollHeight) {
+                        console.log('bottom found');
+                        user.reverseDirection = false;
+                        socket.emit('getLogs', "newer");
+                    }
                 });
             });
         }

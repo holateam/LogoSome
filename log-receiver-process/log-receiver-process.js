@@ -41,10 +41,12 @@ function LogReceiverProcess() {
             });
 
             io.on('connection', (socket) => {
-                socket.emit('news', {hello: 'world'});
                 socket.on('getLogs', function (data) {
                     log.info(data);
-                    searchInBuffer(userId, streamId, nameFile, startLineNumber, direction, limit, filters, cb);
+                    logProcessors.get(data.userId).searchInBuffer(data.userId, data.streamId, data.streamIndex, data.filters,
+                        data.bufferName, data.startLineNumber, data.direction, data.limit, (result) => {
+                            socket.emit('Logs', result);
+                        });
                 });
             });
         }

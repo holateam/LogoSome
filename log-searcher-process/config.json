@@ -1,0 +1,16 @@
+{
+  "receiver": {
+    "host": "localhost",
+    "port": 5000
+  },
+  "backend": {
+    "host" : "localhost",
+    "port": 3000
+  },
+  "searcher": {
+    "host": "localhost",
+    "port": 4000
+  },
+  "dirname": "/home/lex/myProject/logosome/logs/",
+  "encoding": "utf8"
+}
