@@ -33,10 +33,6 @@ const io = require('socket.io')(http);
 const mainSearcher = require("mainSearcher.js");
 const config = require("config.json");
 
-const options = {
-    port: 4000,
-};
-
 let runSearcherProcess = (port) => {
     http.listen(port, () => {
         console.log(`server is running on port ${port}`);
@@ -63,5 +59,5 @@ let getReceiverAdress = () => {
     return config.receiver;
 };
 
-runSearcherProcess(options.port);
+runSearcherProcess(config.searcher.port);
 
