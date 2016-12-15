@@ -13,7 +13,7 @@ function LogReceiverProcess() {
         let logProcessors = new Map();
 
         runServerSocketIO(config.receiver.host, config.receiver.port);
-        runClientSocket(config.searcher.host, config.searcher.port);
+        // runClientSocket(config.searcher.host, config.searcher.port);
 
         request
             .get(`http://${config.backend.host}:${config.backend.port}/service/api/v1/getUsers`)
@@ -48,18 +48,21 @@ function LogReceiverProcess() {
                             socket.emit('Logs', result);
                         });
                 });
-            });
-        }
+                socket.on('live', (socket) => {
 
-        function runClientSocket(host, port) {
-            const socket = require('socket.io-client')(`http://${host}:${port}`);
-            socket.on('connect', () => {
-                socket.on('news', (data) => {
-                    console.log(data);
-                    socket.emit('my other event', {my: 'data'});
                 });
             });
         }
+
+        // function runClientSocket(host, port) {
+        //     const socket = require('socket.io-client')(`http://${host}:${port}`);
+        //     socket.on('connect', () => {
+        //         socket.on('news', (data) => {
+        //             console.log(data);
+        //             socket.emit('my other event', {my: 'data'});
+        //         });
+        //     });
+        // }
 
     }
 
