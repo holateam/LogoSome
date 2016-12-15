@@ -30,8 +30,10 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
+const mainSearcher = require("mainSearcher.js");
+const config = require("config.json");
 
-options = {
+const options = {
     port: 4000,
 };
 
@@ -44,57 +46,22 @@ let runSearcherProcess = (port) => {
 
     io.on('connection', (socket) => {
         console.log('connection have been established');
-
-        let callBack = () => {
-            return socket.emit("logs", (pararms));
+        let searcherInstance = {};
+        let callBack = (messageForAggregator) => {
+             return () => socket.emit("logs", (messageForAggregator));
         };
 
-        socket.on('getLogsWithNewFilter', (params) => {
+        socket.on('getLogs', (params) => {
             params.cb = callBack;
-            createSearcherInstancePairWithParams(params);
+            params.receiver = getReceiverAdress();
+            searcherInstance = new mainSearcher(params);
         });
     });
 };
 
-let createSearcherPairWithParams = (params) => {
-    let searchersArr = [];
-    let newerDirectionSearcher = createSearcherInsatanceWithParams(params, "newer");
-    let olderDirectionSearcher = createSearcherInsatanceWithParams(params, "older");
-    arr.push(newerDirectionSearcher);
-    arr.push(olderDirectionSearcher);
-    runSearcherInstances(searchersArr);
+let getReceiverAdress = () => {
+    return config.receiver;
 };
-
-let createSearcherInsatanceWithParams = (params, stringDirection) => {
-    let searcherInstance = {};
-    searcherInstance.params = params;
-    searcherInstance.params.direction = stringDirection;
-
-    return searcherInstance;
-};
-
-let runSearcherInstances = (instancesArr) => {
-    instancesArr.forEach((instance) => run(instance));
-};
-
-function runInstance(instance, host, port) {
-    const socket = require('socket.io-client')(`http://${host}:${port}`);
-    socket.connect(RECEIVER_PORT, RECEIVER_PORT);
-
-    socket.on('connect', () => {
-        socket.emit("getLogs", params);
-
-        socket.on("receiver heart beat", (res) => {
-            params.cb();
-
-            if (res.noMoreLogs) {
-                searchInFiles(instance, params);
-            }
-        });
-    });
-
-    return socket;
-}
 
 runSearcherProcess(options.port);
 
