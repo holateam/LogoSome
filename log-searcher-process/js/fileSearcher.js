@@ -2,12 +2,12 @@
 
 
 const fileReader = require('./fileReader.js');
-const logsHandler = require('./logsHandler.js');// TODO replace on filter function
+const filterHandler = require('../../backend/modules/filter.js');
 
 class FileSearcher {
     constructor(heartbeatInterval, filePath, filter, limit, reverseDirection, cb) {
         this.heartbeatInterval = heartbeatInterval;
-        this.filter = filter;
+        this.filter = filterHandler(filter);
         this.limit = limit;
         this.cb = cb;
         this.reverseDirection = !!reverseDirection;
@@ -60,11 +60,11 @@ class FileSearcher {
                 if (line.last) {
                     this.fileEnd = true;
                 }
-                if (logsHandler.isMatchesFilter(line.msg, this.filter)) { // TODO replace on filter function
+                if (this.filter(line.msg)) {
                     this.relevantLogs.push(line.msg);
                     this.limit--;
                 }
-                this.finalTimestamp = logsHandler.getTimestamp(line.msg);
+                this.finalTimestamp = this.getTimestamp(line.msg);
             })
             .catch((err)=> {
                 console.log('err: ', err);
@@ -101,6 +101,10 @@ class FileSearcher {
     transmitLogPortion () {
         this.cb(this.fileEnd, this.relevantLogs, this.finalTimestamp);
         this.relevantLogs = [];
+    }
+
+    getTimestamp(log) {
+        return Date.parse(log.substr(0, log.indexOf(' ')));
     }
 
 }
