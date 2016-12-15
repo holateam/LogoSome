@@ -47,6 +47,22 @@ let runSearcherProcess = (port) => {
              return () => socket.emit("logs", (messageForAggregator));
         };
 
+        socket.on('moreLogs', (params) => {
+            if (params.direction == "older") {
+                searcherInstance.getOlderLogs(params.limit);
+            } else if (params.direction == "newer") {
+                searcherInstance.getNewerLogs(params.limit);
+            }
+        });
+
+        socket.on("live", (turnStatus) => {
+            if (turnStatus) {
+
+            } else {
+
+            }
+        });
+
         socket.on('getLogs', (params) => {
             params.cb = callBack;
             params.receiver = getReceiverAdress();
