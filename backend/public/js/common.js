@@ -170,6 +170,13 @@ let socket;
                     ,"aasdasddaasdasd","dasdasdasdas","aasdasddaasdasd","dasdasdasdas"]);
                 socket = io.connect('http://localhost:3006');
                 socket.emit('init', {"token": model.getCookie('token'), "filter": ""});
+                socket.on('logs',function (logsForSend, direction) {
+                    if (direction == 'older'){
+                        view.addLogs(logs);
+                    } else if (direction == 'newer'){
+                        view.addLogs(logs.reverse());
+                    }
+                })
             }
         },
         event: function () { // тут навешиваем слушателей на события
