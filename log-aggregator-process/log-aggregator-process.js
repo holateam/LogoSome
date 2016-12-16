@@ -22,9 +22,8 @@ io.on('connection', function (socket) {
                     response.setEncoding('utf8');
                     response.on('data', (result) => {
                         let userInfo = JSON.parse(result);
-                        // let aresult = JSON.parse(result);
                         agregator = createAggregator(userInfo.data._id, userInfo.data.streams, data.filter, 100, 2000, "older", function (logsForSend, direction) {
-                            io.emit("Logs", logsForSend, direction);
+                            io.emit("logs", logsForSend, direction);
                         });
                     });
                 }
@@ -58,11 +57,9 @@ io.on('connection', function (socket) {
 
 });
 
-
 http.listen(3006, function () {
     console.log('listening on *:3006');
 });
-
 
 function createAggregator(_id, watchedFiles, filters, limit, heartbeatInterval, direction, callback) {
     console.log(_id, watchedFiles, filters, limit, heartbeatInterval, direction);
@@ -105,7 +102,7 @@ function createAggregator(_id, watchedFiles, filters, limit, heartbeatInterval, 
                     srez(direction);
                 }
             } else if (direction == "newer") {
-                if (noMoreLogs || lastLine)
+                if (noMoreLogs || lastTimestamp)
                     timestampsForNew[streamIndex] = noMoreLogs ? new Date(Date.now() + 86400000).getTime() : lastTimestamp;
                 if (noMoreLogs) {
                     readyToLive[streamIndex] = true;
