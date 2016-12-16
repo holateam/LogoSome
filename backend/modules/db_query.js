@@ -4,27 +4,20 @@ const bCrypt = require('bcrypt');
 
 module.exports.getFilesStream = (obj) => {
     return new Promise((resolve, reject) => {
-        console.log("qury: " + JSON.stringify(obj));
-        Users.findOne({'_id': obj.userId}).exec((err, user) => {
-            if(err)
-                reject({err: true, data: {msg: 'err db'}});
-            console.log(JSON.stringify(user));
-            function createArrayFilesStream(user){
+        Users.findOne({'_id': obj.userId}, {'_id': 0}).exec((err, user) => {
+            if (err)
+                reject({err: true, data: 'err db'});
+            if (user) {
                 let array = [];
                 user.streams.forEach(value => {
-                    console.log(JSON.stringify(value));
-                    if(value.name === obj.nameStream){
-                        console.log(value.fileslist.namefile);
-                        array= value.fileslist.map(file => {
-                            return file.namefile;
-                        });
+                    if (value.name === obj.nameStream) {
+                        array = value.fileslist;
                     }
                 });
-                return array
+                resolve({err: false, data: array});
+            } else {
+                reject({err: true, data: "Not found user"});
             }
-
-            console.log(createArrayFilesStream(user));
-            resolve({err: false, data: {filesStream: createArrayFilesStream(user) }});
         });
     });
 };
@@ -32,26 +25,27 @@ module.exports.getFilesStream = (obj) => {
 module.exports.getUser = (obj) => {
     return new Promise((resolve, reject) => {
         Users.findOne({"sessiontoken": obj.token}, {
-            "password": 0,"port":0,
+            "password": 0, "port": 0,
             "sessiondate": 0
         }).exec((err, user) => {
             if (err) {
-                reject({err: true, data:{msg: 'err db '}});
+                reject({err: true, data: {msg: 'err db '}});
                 console.log(err);
             }
             console.log(JSON.stringify(user));
-            function createStreamsArray(user){
-                return  user.streams.map(value => {
+            function createStreamsArray(user) {
+                return user.streams.map(value => {
                     return value.name;
                 });
             }
-            resolve({err: false, data: {_id: user._id, streams: createStreamsArray(user) }});
+
+            resolve({err: false, data: {_id: user._id, streams: createStreamsArray(user)}});
         })
 
     });
 };
 
-// module.exports.getStreamFiles = () => {
+// module.exports.getStreamFiles = (obj) => {
 //     return new Promise((resolve, reject) => {
 //         Users.findOne({"host": "127.0.0.1", "port": "30000", "streams.name": "log"}, {"streams.$": 1}, (err, user) => {
 //            if(err)
@@ -125,7 +119,7 @@ module.exports.registration = (obj) => {
                 Users.find({}, (err, users) => {
                     if (err)
                         console.log(err);
-                    newUser.port = (users.length !== 0) ? users[users.length-1].port + 1 : 30000; // users port
+                    newUser.port = (users.length !== 0) ? users[users.length - 1].port + 1 : 30000; // users port
                     newUser.save((err) => {
                         if (err) reject({err: true, data: {msg: "Server error, please reload pages"}});
                     });
