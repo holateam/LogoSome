@@ -171,7 +171,7 @@ module.exports.getNameStreams = (userHost, userPort) => {
     });
 };
 
-module.exports.saveTheInfoOfFile = (userId, nameStream, addressFile) => {
+module.exports.saveTheInfoOfFile = (userId, nameStream, addressFile, linesNumber) => {
     return new Promise((resolve, reject) => {
         Users.findOne({_id: userId}).exec((err, doc) => {
             if (err) {
@@ -179,7 +179,7 @@ module.exports.saveTheInfoOfFile = (userId, nameStream, addressFile) => {
             }
             doc.streams.forEach(stream => {
                 if (stream.name == nameStream) {
-                    stream.fileslist.push({namefile: addressFile});
+                    stream.fileslist.push({namefile: addressFile, linesNumber:linesNumber});
                 }
             });
             doc.save((err) => {

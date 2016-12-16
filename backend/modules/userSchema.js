@@ -16,7 +16,7 @@ let UserSchema = new Schema({
             name: String,
             fileslist: [{
                 namefile: String,
-                search: [{}]
+                linesNumber: Number,
             }],
 
         }

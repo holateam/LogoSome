@@ -38,7 +38,7 @@ router.get('/api/v1/getUsers', (req, res, next) => {
 });
 
 router.route('/api/v1/saveTheInfoOfFile').post((req, res, next) => {
-    db_query.saveTheInfoOfFile(req.body.userId, req.body.nameStream, req.body.namefile).then((result) => {
+    db_query.saveTheInfoOfFile(req.body.userId, req.body.nameStream, req.body.namefile, req.body.linesNumber).then((result) => {
         res.json(200, standardRes(result.err, result.data));
     }).catch((result) => {
         res.json(500, standardRes(result.err, result.data));
