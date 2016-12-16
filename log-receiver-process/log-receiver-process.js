@@ -43,10 +43,17 @@ function LogReceiverProcess() {
             io.on('connection', (socket) => {
                 socket.on('getLogs', function (data) {
                     log.info(data);
-                    logProcessors.get(data.userId).searchInBuffer(data.userId, data.streamId, data.streamIndex, data.filters,
-                        data.bufferName, data.startLineNumber, data.direction, data.limit, (result) => {
-                            socket.emit('Logs', result);
-                        });
+                    if (logProcessors.has(data.userId)) {
+                        logProcessors.get(data.userId).searchInBuffer(data.userId, data.streamId, data.streamIndex, data.filters,
+                            data.bufferName, data.startLineNumber, data.direction, data.limit, (result) => {
+                               if(data.direction == 'older'){
+                                   socket.emit('oldLogs', result);
+                               } else {
+                                   socket.emit('newLogs', result);
+                               }
+                            });
+                    }
+
                 });
                 socket.on('live', (socket) => {
 
