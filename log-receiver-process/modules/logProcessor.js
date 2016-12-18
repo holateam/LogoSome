@@ -54,7 +54,7 @@ module.exports = function logProcessor(user) {
                         bufferName: namefile,
                         startLineNumber: startLineNumber,
                         finishLineNumber: countLine,
-                        lastLine: arrayLogs[arrayLogs.length - 1],
+                        lastTimestamp: getTimestamp(arrayLogs[arrayLogs.length - 1]),
                         noMoreLogs: (arrayLogs.length - 1 == countLine || countLine == 0),
                         direction: direction,
                         logs: arrayLogs
@@ -131,6 +131,10 @@ module.exports = function logProcessor(user) {
 
 
         });
+    }
+
+    function getTimestamp(log) {
+        return Date.parse(log.substr(0, log.indexOf(' ')));
     }
 
     function parseToString(line) {
