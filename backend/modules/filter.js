@@ -53,7 +53,7 @@ function parseFilter(str, negation) {
                 }
                 i--;
             }
-            node.left = parseString(str.substring(index, i + 1), minus);
+            node.left = parseFilter(str.substring(index, i + 1), minus);
             i += 2;
             if (str[i] == " ") {
                 while (str[i] == " " && str[i] < str.length) {
@@ -62,7 +62,7 @@ function parseFilter(str, negation) {
             }
             node.action = (str[i] == "O" && str[i + 1] == "R") ? "||" : "&&";
             let offset = (str[i] == "O" && str[i + 1] == "R") ? 3 : 0;
-            node.right = parseString(str.substr(i + offset), null);
+            node.right = parseFilter(str.substr(i + offset), null);
             node.negation = braceNegation;
             break;
         }

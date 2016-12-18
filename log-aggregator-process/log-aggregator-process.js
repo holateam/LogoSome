@@ -34,12 +34,8 @@ io.on('connection', function (socket) {
         console.log('user disconnected');
     });
 
-    socket.on('pauseLive', function () {
-
-    });
-
-    socket.on('resumeLive', function () {
-
+    socket.on('live', function (status) {
+        agregator.live(status);
     });
 
     socket.on("getFilteredLogs", function (filter) {
