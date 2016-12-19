@@ -3,8 +3,8 @@
 let FileLineReader = require('./fileLineReader.js');
 
 
-let fileReader = (filePath, direction, chankSize, separator, encoding)=> {
-    const flr = new FileLineReader(filePath, direction, chankSize, separator, encoding);
+let fileReader = (filePath, direction, chunkSize, separator, encoding)=> {
+    const flr = new FileLineReader(filePath, direction, chunkSize, separator, encoding);
 
     return {
         readLine: ()=> {

@@ -2,20 +2,20 @@
 
 
 const fileReader = require('./fileReader.js');
-const filterHandler = require('../../backend/modules/filter.js');
+const filterHandler = require('./filter.js');
 
 class FileSearcher {
-    constructor(heartbeatInterval, filePath, filter, limit, reverseDirection, cb) {
+    constructor(heartbeatInterval, filePath, filter, reverseDirection, cb) {
         this.heartbeatInterval = heartbeatInterval;
         this.filter = filterHandler(filter);
-        this.limit = limit;
         this.cb = cb;
         this.reverseDirection = !!reverseDirection;
         this.fr = fileReader(filePath, reverseDirection);
+        this.limit = null;
         this.relevantLogs = [];
         this.timeouts = [];
         this.fileEnd = false;
-        this.finalTimestamp = 0;
+        this.finalTimestamp = null;
         this.pauseSearch = true;
     }
 
@@ -28,14 +28,14 @@ class FileSearcher {
         this.schedulePeriodicallySearcherInfo();
     }
 
-    startFromSpecifiedLine (skippedLinesNumber) {
+    startFromSpecifiedLine (skippedLinesNumber, limit) {
         return this.fr.readLine()
             .then(()=> {
                 skippedLinesNumber--;
                 if (skippedLinesNumber) {
                     this.startFromSpecifiedLine(skippedLinesNumber);
                 } else {
-                    this.getLogs();
+                    this.getLogs(limit);
                 }
             })
     }
@@ -69,10 +69,6 @@ class FileSearcher {
             .catch((err)=> {
                 console.log('err: ', err);
             })
-    }
-
-    pause () {
-        this.pauseSearch = true;
     }
 
     stop () {
