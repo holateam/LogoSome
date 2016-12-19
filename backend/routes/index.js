@@ -28,25 +28,25 @@ let standardRes = (err, resp) => {
 
 router.route('/api/v1/login').post((req, res, next) => {
     db_query.login(req.body).then((result) => {
-        res.json(200,standardRes(result.err, result.data));
+        res.status(200).json(standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(500,standardRes(result.err, result.data));
+        res.status(500).json(standardRes(result.err, result.data));
     });
 });
 
 router.route('/api/v1/registration').post((req, res, next) => {
     db_query.registration(req.body).then((result) => {
-        res.json(200,standardRes(result.err, result.data));
+        res.status(200).json(standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(500,standardRes(result.err, result.data));
+        res.status(500).json(standardRes(result.err, result.data));
     });
 });
 
 router.route('/api/v1/cookie-session').post((req, res, next) => {
     db_query.cookieSession(req.body.cookie).then((result) => {
-        res.json(200, standardRes(result.err, result.data));
+        res.status(200).json(standardRes(result.err, result.data));
     }).catch((result) => {
-        res.json(500, standardRes(result.err, result.data));
+        res.status(500).json(standardRes(result.err, result.data));
     });
 });
 
