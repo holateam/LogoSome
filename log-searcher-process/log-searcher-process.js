@@ -63,8 +63,8 @@ let runSearcherProcess = (port) => {
             }
         });
 
-        socket.on("live", (live) => {
-            if (live) {
+        socket.on("live", (params) => {
+            if (params.live) {
                 searcherInstance.liveModeOn();
             } else {
                 searcherInstance.liveModeOff();
