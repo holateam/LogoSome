@@ -41,22 +41,36 @@ function LogReceiverProcess() {
             });
 
             io.on('connection', (socket) => {
-                socket.on('getLogs', function (data) {
+                let liveListener = {};
+                socket.on('getLogs', (data) => {
                     log.info(data);
                     if (logProcessors.has(data.userId)) {
                         logProcessors.get(data.userId).searchInBuffer(data.userId, data.streamId, data.streamIndex, data.filters,
                             data.bufferName, data.startLineNumber, data.direction, data.limit, (result) => {
-                               if(data.direction == 'older'){
-                                   socket.emit('oldLogs', result);
-                               } else {
-                                   socket.emit('newLogs', result);
-                               }
+                                if (data.direction == 'older') {
+                                    socket.emit('oldLogs', result);
+                                } else {
+                                    socket.emit('newLogs', result);
+                                }
                             });
                     }
 
                 });
-                socket.on('live', (socket) => {
-
+                socket.on('Live', (data) => {
+                    log.info(data);
+                    if (logProcessors.has(data.userId)) {
+                        if(data.live){
+                            liveListener = logProcessors.get(data.userId).live(data.streamId, data.filter,
+                                data.live, (result) => {
+                                    socket.emit('liveLogs', result);
+                                    console.log('liveListener: ' + liveListener);
+                                });
+                        } else {
+                            logProcessors.get(data.userId).liveOff(data.streamId, liveListener,  (result) => {
+                                socket.emit('liveLogs', result);
+                            })
+                        }
+                    }
                 });
             });
         }
