@@ -5,12 +5,12 @@ const fileReader = require('./fileReader.js');
 const filterHandler = require('./filter.js');
 
 class FileSearcher {
-    constructor(heartbeatInterval, filePath, filter, reverseDirection, cb) {
+    constructor(heartbeatInterval, file, filter, reverseDirection, cb) {
         this.heartbeatInterval = heartbeatInterval;
         this.filter = filterHandler(filter);
         this.cb = cb;
         this.reverseDirection = !!reverseDirection;
-        this.fr = fileReader(filePath, reverseDirection);
+        this.fr = fileReader(file, reverseDirection);
         this.limit = null;
         this.relevantLogs = [];
         this.timeouts = [];

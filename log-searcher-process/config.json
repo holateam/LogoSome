@@ -10,7 +10,11 @@
   },
   "searcher": {
     "host": "localhost",
-    "port": 4000
+    "port": 4000,
+    "errorsMsg" : {
+      "31": "unable to get files list",
+      "32": "file not found: "
+    }
   },
   "dirname": "/home/lex/myProject/logosome/logs/",
   "encoding": "utf8"

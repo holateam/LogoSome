@@ -5,10 +5,10 @@ const fs = require('fs');
 
 class FileLineReader {
 
-    constructor(filename, reverse, chunkSize, separator, encoding) {
+    constructor(file, reverse, chunkSize, separator, encoding) {
         this.reverseDirection = !!reverse;
-        this.size = fs.statSync(filename).size;
-        this.filename = filename;
+        this.size = file.size;
+        this.filename = file.path;
         this.separator = separator || '\n';
         this.encoding = encoding || 'utf8';
         this.chunkSize = chunkSize || 1024;

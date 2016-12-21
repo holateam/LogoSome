@@ -30,26 +30,31 @@ const express = require('express');
 const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
-const logSearcher = require("./js/logSearcher.js");
+const logSearcher = require("./modules/logSearcher.js");
+const log = require("./modules/logger.js");
 const config = require("./config.json");
 
 
 let runSearcherProcess = (port) => {
     http.listen(port, () => {
-        console.log(`server is running on port ${port}`);
+        logger.info(`server is running on port ${port}`);
     });
 
     app.use(express.static(__dirname + '/'));
 
     io.on('connection', (socket) => {
-        console.log('connection have been established');
+        log.info(`connection have been established: socket id: ${socket.id}`);
+
         let searcherInstance = {};
         let callBack = (messageForAggregator) => {
-             return () => socket.emit("logs", (messageForAggregator));
+            log.debug('return from searcher instance: ', messageForAggregator);
+            return () => socket.emit("logs", (messageForAggregator));
         };
 
         socket.on('getLogs', (params) => {
             params.cb = callBack;
+            params.logger = log;
+            log.info(`user: ${params.userId} start new searcher for ${params.streamId}`);
             searcherInstance = new logSearcher(params);
             searcherInstance.getOlderLogs(params.limit);
             searcherInstance.liveModeOn();
