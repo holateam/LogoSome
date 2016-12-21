@@ -8,41 +8,28 @@ const config = require('../config.json');
 
 
 module.exports = function logProcessor(user) {
-    let bufferArrays = {};
+
+    let bufferArrays = createBufferArrays(user);
     let userId = user._id;
     let host = user.host;
     let port = user.port;
-    let limit = 10;
+    let maxSizeFile = 100;
     let liveListenersLogs = [];
 
-    this.searchInBuffer = (userId, streamId, streamIndex, filters,
-                           bufferName, startLineNumber, direction, limit, callback) => {
-        let countLine = startLineNumber;
+    this.searchInBufferNewLogs = (userId, streamId, filters,
+                                  bufferName, startLineNumber, directionPast, limit, callback) => {
         let arrayLogs = [];
-        let namefile = (bufferArrays[streamId]) ? bufferArrays[streamId].namefile : false;
 
-        if ((namefile) && (namefile == bufferName || bufferName == "")) {
-            if (direction == 'newer') {
-                for (let i = startLineNumber + 1; i < bufferArrays[streamId].bufferArray.length; i++) {
-                    if (arrayLogs.length !== limit) {
-                        countLine++;
-                        if (bufferArrays[streamId].bufferArray[i].indexOf(filters)) {
-                            arrayLogs.push(bufferArrays[streamId].bufferArray[i]);
-                        }
-                    } else {
-                        break;
+        if (bufferArrays[streamId].namefile && bufferArrays[streamId].bufferArray.length
+            && (bufferArrays[streamId].namefile === bufferName || !bufferName)) {
+            let countLine = startLine = (startLineNumber) ? (startLineNumber + 1) : 0;
+            for (; countLine < bufferArrays[streamId].bufferArray.length; countLine++) {
+                if (arrayLogs.length !== limit) {
+                    if (bufferArrays[streamId].bufferArray[countLine].indexOf(filters)) {
+                        arrayLogs.push(bufferArrays[streamId].bufferArray[countLine]);
                     }
-                }
-            } else {
-                for (let i = startLineNumber - 1; i >= 0; i--) {
-                    if (arrayLogs.length !== limit) {
-                        countLine--;
-                        if (bufferArrays[streamId].bufferArray[i].indexOf(filters)) {
-                            arrayLogs.push(bufferArrays[streamId].bufferArray[i]);
-                        }
-                    } else {
-                        break;
-                    }
+                } else {
+                    break;
                 }
             }
 
@@ -51,17 +38,57 @@ module.exports = function logProcessor(user) {
                     err: false,
                     data: {
                         streamId: streamId,
-                        streamIndex: streamIndex,
-                        bufferName: namefile,
-                        startLineNumber: startLineNumber,
-                        finishLineNumber: countLine,
-                        lastTimestamp: getTimestamp(arrayLogs[arrayLogs.length - 1]),
-                        noMoreLogs: (arrayLogs.length - 1 == countLine || countLine == 0),
-                        direction: direction,
+                        bufferName: bufferArrays[streamId].namefile,
+                        startLineNumber: startLine,
+                        finishLineNumber: countLine - 1,
+                        lastTimestamp: getTimestamp(bufferArrays[streamId].bufferArray[countLine - 1]),
+                        noMoreLogs: (countLine >= bufferArrays[streamId].bufferArray.length),
+                        direction: directionPast,
                         logs: arrayLogs
                     }
                 }
             );
+
+        } else {
+            callback({err: true, data: {}});
+        }
+
+
+    };
+    this.searchInBufferOldLogs = (userId, streamId, filters,
+                                  bufferName, startLineNumber, directionPast, limit, callback) => {
+
+        let arrayLogs = [];
+
+        if (bufferArrays[streamId].namefile && bufferArrays[streamId].bufferArray.length
+            && (bufferArrays[streamId].namefile === bufferName || !bufferName)) {
+            let countLine = startLine = (startLineNumber) ? (startLineNumber - 1) : bufferArrays[streamId].bufferArray.length - 1;
+            for (; countLine >= 0; countLine--) {
+                if (arrayLogs.length !== limit) {
+                    if (bufferArrays[streamId].bufferArray[countLine].indexOf(filters)) {
+                        arrayLogs.push(bufferArrays[streamId].bufferArray[countLine]);
+                    }
+                } else {
+                    break;
+                }
+            }
+
+            callback(
+                {
+                    err: false,
+                    data: {
+                        streamId: streamId,
+                        bufferName: bufferArrays[streamId].namefile,
+                        startLineNumber: startLine,
+                        finishLineNumber: countLine + 1,
+                        lastTimestamp: "",//getTimestamp(bufferArrays[streamId].bufferArray[countLine]),
+                        noMoreLogs: (countLine <= 0),
+                        direction: directionPast,
+                        logs: arrayLogs
+                    }
+                }
+            );
+
         } else {
             callback({err: true, data: {}});
         }
@@ -69,17 +96,15 @@ module.exports = function logProcessor(user) {
 
     };
     this.live = (streamId, filter, live, callback) => {
-
         return liveListenersLogs.push({
             streamId: streamId,
             filter: filter,
             callback: callback
         });
-
     };
-    this.liveOff = (streamId, liveListenerId, cb) => {
+    this.liveOff = (streamId, liveListenerId, callback) => {
         liveListenersLogs[liveListenerId] = null;
-        cb({err: false, live: false});
+        callback({err: false, live: false});
     };
 
     runServerTCP(host, port);
@@ -102,7 +127,7 @@ module.exports = function logProcessor(user) {
         data.toString().split('\n').forEach(line => {
 
             let nameStream = line.toString().split(' ')[3];
-            let nameFile = '';
+
             if (!bufferArrays[nameStream]) {
                 bufferArrays[nameStream] = {
                     namefile: `${generationDirnameStr(userId, nameStream)}${generationNameFileStr(userId, nameStream)}`,
@@ -111,11 +136,11 @@ module.exports = function logProcessor(user) {
             }
 
             if (line != "") {
+                if (!bufferArrays[nameStream].namefile) {
+                    bufferArrays[nameStream].namefile = `${generationDirnameStr(userId, nameStream)}${generationNameFileStr(userId, nameStream)}`;
+                }
                 let log = new Date().toISOString() + ' ' + parseToString(line);
-
-                console.log('Line: ' + line);
                 bufferArrays[nameStream].bufferArray.push(log);
-
                 if (liveListenersLogs.length) {
                     liveListenersLogs.forEach(listener => {
                         if (listener.streamId == nameStream) {
@@ -129,12 +154,11 @@ module.exports = function logProcessor(user) {
                         }
                     });
                 }
-
             }
 
-            if (bufferArrays[nameStream].bufferArray.length >= limit) {
+            if (bufferArrays[nameStream].bufferArray.length >= maxSizeFile) {
                 let buffer = JSON.parse(JSON.stringify(bufferArrays[nameStream].bufferArray));
-                nameFile = bufferArrays[nameStream].namefile;
+                let nameFile = bufferArrays[nameStream].namefile;
                 bufferArrays[nameStream] = false;
 
                 saveInFile(userId, nameStream, nameFile, buffer, (address) => {
@@ -153,16 +177,24 @@ module.exports = function logProcessor(user) {
                             if (response.statusCode == 200) {
                                 response.setEncoding('utf8');
                                 response.on('data', (result) => {
-                                    console.log(JSON.stringify(result));
                                 });
                             }
                         });
                 });
-
             }
 
 
         });
+    }
+
+    function createBufferArrays(user) {
+        return user.streams.map(i => i.name).reduce((total, currentV, index, arr) => {
+            total[arr[index]] = {
+                namefile: false,
+                bufferArray: []
+            };
+            return total;
+        }, {});
     }
 
     function getTimestamp(log) {
