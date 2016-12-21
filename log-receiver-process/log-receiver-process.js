@@ -45,7 +45,7 @@ function LogReceiverProcess() {
                 log.info(`Connection search-service: ${ip_address}`);
 
                 socket.on('getLogs', (data) => {
-                    log.info(`${ip_address} EVENT /getLogs`)
+                    log.info(`${ip_address} EVENT /getLogs`);
                     if (logProcessors.has(data.userId)) {
                         let directionPast = (data.direction == 'older');
                         if (directionPast) {
@@ -64,15 +64,17 @@ function LogReceiverProcess() {
 
                 });
                 socket.on('Live', (data) => {
-                    log.info(`${ip_address} EVENT /Live`)
+                    log.info(`${ip_address} EVENT /Live`);
                     if (logProcessors.has(data.userId)) {
                         if (data.live) {
                             liveListener = logProcessors.get(data.userId).live(data.streamId, data.filter,
                                 data.live, (result) => {
+                                    log.info(`EMIT /liveLogs ${ip_address}`);
                                     socket.emit('liveLogs', result);
                                 });
                         } else {
                             logProcessors.get(data.userId).liveOff(data.streamId, liveListener, (result) => {
+                                log.info(`EMIT /liveLogs ${ip_address}`);
                                 socket.emit('liveLogs', result);
                             })
                         }
