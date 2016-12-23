@@ -60,7 +60,7 @@ function formatter(options) {
 }
 
 module.exports = {
-    error: ()=> function(){
+    error: function(){
         errorLogger.error.apply(this, arguments);
     },
     info: function() {
