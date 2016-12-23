@@ -60,13 +60,13 @@ function formatter(options) {
 }
 
 module.exports = {
-    error: ()=> {
+    error: ()=> function(){
         errorLogger.error.apply(this, arguments);
     },
-    info: ()=> {
+    info: function() {
         infoLogger.info.apply(this, arguments);
     },
-    debug: ()=> {
+    debug: function() {
         debugLogger.debug.apply(this, arguments);
     }
 };
