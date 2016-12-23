@@ -13,7 +13,6 @@ function LogReceiverProcess() {
         let logProcessors = new Map();
 
         runServerSocketIO(config.receiver.host, config.receiver.port);
-        // runClientSocket(config.searcher.host, config.searcher.port);
 
         request
             .get(`http://${config.backend.host}:${config.backend.port}/service/api/v1/getUsers`)
@@ -42,31 +41,40 @@ function LogReceiverProcess() {
 
             io.on('connection', (socket) => {
                 let liveListener = {};
+                let ip_address = socket.request.connection.remoteAddress;
+                log.info(`Connection search-service: ${ip_address}`);
+
                 socket.on('getLogs', (data) => {
-                    log.info(data);
+                    log.info(`${ip_address} EVENT /getLogs`);
                     if (logProcessors.has(data.userId)) {
-                        logProcessors.get(data.userId).searchInBuffer(data.userId, data.streamId, data.streamIndex, data.filters,
-                            data.bufferName, data.startLineNumber, data.direction, data.limit, (result) => {
-                                if (data.direction == 'older') {
+                        let directionPast = (data.direction == 'older');
+                        if (directionPast) {
+                            logProcessors.get(data.userId).searchInBufferOldLogs(data.userId, data.streamId, data.filters,
+                                data.bufferName, data.startLineNumber, directionPast, data.limit, (result) => {
                                     socket.emit('oldLogs', result);
-                                } else {
+                                });
+                        } else {
+                            logProcessors.get(data.userId).searchInBufferNewLogs(data.userId, data.streamId, data.filters,
+                                data.bufferName, data.startLineNumber, directionPast, data.limit, (result) => {
                                     socket.emit('newLogs', result);
-                                }
-                            });
+                                });
+                        }
+
                     }
 
                 });
                 socket.on('Live', (data) => {
-                    log.info(data);
+                    log.info(`${ip_address} EVENT /Live`);
                     if (logProcessors.has(data.userId)) {
-                        if(data.live){
+                        if (data.live) {
                             liveListener = logProcessors.get(data.userId).live(data.streamId, data.filter,
                                 data.live, (result) => {
+                                    log.info(`EMIT /liveLogs ${ip_address}`);
                                     socket.emit('liveLogs', result);
-                                    console.log('liveListener: ' + liveListener);
                                 });
                         } else {
-                            logProcessors.get(data.userId).liveOff(data.streamId, liveListener,  (result) => {
+                            logProcessors.get(data.userId).liveOff(data.streamId, liveListener, (result) => {
+                                log.info(`EMIT /liveLogs ${ip_address}`);
                                 socket.emit('liveLogs', result);
                             })
                         }
@@ -74,16 +82,6 @@ function LogReceiverProcess() {
                 });
             });
         }
-
-        // function runClientSocket(host, port) {
-        //     const socket = require('socket.io-client')(`http://${host}:${port}`);
-        //     socket.on('connect', () => {
-        //         socket.on('news', (data) => {
-        //             console.log(data);
-        //             socket.emit('my other event', {my: 'data'});
-        //         });
-        //     });
-        // }
 
     }
 
